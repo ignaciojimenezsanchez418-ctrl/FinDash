@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:c="clr-namespace:FinDashFrontEnd.Controls"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.HomePage"
+             x:DataType="vm:HomeViewModel"
+             Title="Inicio">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+        <ScrollView>
+            <VerticalStackLayout Padding="16,24,16,24" Spacing="16">
+
+                <!-- Encabezado -->
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                        <Label Text="{Binding Greeting}" Style="{StaticResource CaptionText}" />
+                        <Label Text="Inicio" Style="{StaticResource TitleText}" SemanticProperties.HeadingLevel="Level1" />
+                    </VerticalStackLayout>
+                    <Button Grid.Column="1" Text="{x:Static t:Icons.Notifications}" Style="{StaticResource IconButton}"
+                            Command="{Binding OpenAlertsCommand}" SemanticProperties.Description="Ver alertas" />
+                </Grid>
+
+                <c:NoticeBanner IsVisible="{Binding IsOffline}" Text="{Binding OfflineText}" />
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+                <!-- Esqueleto mientras carga la primera vez -->
+                <VerticalStackLayout IsVisible="{Binding IsLoadingFirst}" Spacing="16">
+                    <Border Style="{StaticResource Skeleton}" HeightRequest="150" />
+                    <Border Style="{StaticResource Skeleton}" HeightRequest="112" />
+                    <Border Style="{StaticResource Skeleton}" HeightRequest="40" WidthRequest="140" HorizontalOptions="Start" />
+                    <Border Style="{StaticResource Skeleton}" HeightRequest="256" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout IsVisible="{Binding IsLoaded}" Spacing="16">
+
+                    <!-- Patrimonio total -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Patrimonio total" Style="{StaticResource CaptionText}" />
+                            <Label Text="{Binding TotalText}" Style="{StaticResource DisplayText}" />
+                            <Label Text="{Binding TotalSecondaryText}" Style="{StaticResource MonoCaption}" />
+                            <c:ChangeChip Text="{Binding DayChangeText}" IsPositive="{Binding DayChangePositive}"
+                                          HorizontalOptions="Start" Margin="0,8,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Tipo de cambio -->
+                    <Border Style="{StaticResource Card}" Padding="20,16">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenFxCommand}" />
+                        </Border.GestureRecognizers>
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="12" ColumnSpacing="12">
+                            <VerticalStackLayout Grid.ColumnSpan="2" Spacing="2">
+                                <Label Text="Dólar · tipo de cambio BCCR" Style="{StaticResource BodyStrong}" />
+                                <Label Text="{Binding UpdatedText}" Style="{StaticResource CaptionText}" />
+                            </VerticalStackLayout>
+                            <c:ChangeChip Grid.Column="1" Text="{Binding FxChangeText}" IsPositive="{Binding FxChangePositive}"
+                                          HorizontalOptions="End" VerticalOptions="Start" />
+                            <VerticalStackLayout Grid.Row="1" Spacing="2">
+                                <Label Text="Compra" Style="{StaticResource CaptionText}" />
+                                <Label Text="{Binding FxBuyText}" Style="{StaticResource MonoStrong}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+                                <Label Text="Venta" Style="{StaticResource CaptionText}" />
+                                <Label Text="{Binding FxSellText}" Style="{StaticResource MonoStrong}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- Mis activos -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Mis activos" Style="{StaticResource SectionText}" VerticalOptions="Center"
+                               SemanticProperties.HeadingLevel="Level2" />
+                        <Button Grid.Column="1" Text="+ Agregar" Style="{StaticResource SmallSecondaryButton}"
+                                Command="{Binding AddAssetCommand}" />
+                    </Grid>
+
+                    <Border Style="{StaticResource CardList}" IsVisible="{Binding HasItems}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AssetRowViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource Divider}" IsVisible="{Binding ShowDivider}" />
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="16,12">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                                            </Grid.GestureRecognizers>
+                                            <Border Style="{StaticResource Avatar}">
+                                                <Label Text="{Binding Symbol}" Style="{StaticResource AvatarText}" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding Name}" Style="{StaticResource BodyMedium}" />
+                                                <Label Text="{Binding Subtitle}" Style="{StaticResource MonoCaption}" />
+                                            </VerticalStackLayout>
+                                            <VerticalStackLayout Grid.Column="2" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding ValueText}" Style="{StaticResource MonoText}" HorizontalOptions="End" />
+                                                <c:ChangeChip Text="{Binding ChangeText}" IsPositive="{Binding IsPositive}"
+                                                              Filled="False" HorizontalOptions="End" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Sin activos -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding IsEmpty}">
+                        <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <Label Text="{x:Static t:Icons.Savings}" Style="{StaticResource IconText}" FontSize="36"
+                                   TextColor="{DynamicResource PrimaryColor}" HorizontalOptions="Center" />
+                            <Label Text="Todavía no hay activos en seguimiento" Style="{StaticResource BodyStrong}" HorizontalTextAlignment="Center" />
+                            <Label Text="Agregue el dólar o una criptomoneda para ver su precio aquí."
+                                   Style="{StaticResource CaptionText}" HorizontalTextAlignment="Center" />
+                            <Button Text="Agregar activo" Command="{Binding AddAssetCommand}" Margin="0,8,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="{Binding UpdatedText}" Style="{StaticResource CaptionText}" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+</ContentPage>

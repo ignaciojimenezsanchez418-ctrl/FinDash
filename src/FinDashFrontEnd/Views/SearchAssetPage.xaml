@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.SearchAssetPage"
+             x:DataType="vm:SearchAssetViewModel"
+             Shell.PresentationMode="ModalAnimated"
+             Title="Agregar activo">
+
+    <Grid RowDefinitions="Auto,Auto,*" Padding="16,16,16,0" RowSpacing="16">
+
+        <Grid ColumnDefinitions="*,Auto">
+            <Label Text="Agregar activo" Style="{StaticResource TitleText}" VerticalOptions="Center"
+                   SemanticProperties.HeadingLevel="Level1" />
+            <Button Grid.Column="1" Text="{x:Static t:Icons.Close}" Style="{StaticResource IconButton}"
+                    Command="{Binding BackCommand}" SemanticProperties.Description="Cerrar" />
+        </Grid>
+
+        <Border Grid.Row="1" Style="{StaticResource FieldBox}">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                <Label Text="{x:Static t:Icons.Search}" Style="{StaticResource IconText}" FontSize="20"
+                       TextColor="{DynamicResource TextMutedColor}" />
+                <Entry x:Name="QueryEntry" Grid.Column="1" Text="{Binding Query}"
+                       Placeholder="Buscar por nombre o símbolo" ReturnType="Search"
+                       IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
+                       SemanticProperties.Description="Buscar activo" />
+            </Grid>
+        </Border>
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Results}" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="Sin resultados. Pruebe con otro nombre o símbolo." Style="{StaticResource CaptionText}"
+                       HorizontalTextAlignment="Center" Margin="0,32" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:SearchResultViewModel">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="0,10">
+                        <Border Style="{StaticResource Avatar}">
+                            <Label Text="{Binding Symbol}" Style="{StaticResource AvatarText}" />
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="{Binding Name}" Style="{StaticResource BodyMedium}" />
+                            <Label Text="{Binding Detail}" Style="{StaticResource MonoCaption}" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="2" Text="Seguir" Style="{StaticResource SmallSecondaryButton}"
+                                IsVisible="{Binding IsNotAdded}" Command="{Binding ToggleCommand}" />
+                        <Button Grid.Column="2" Text="Siguiendo" Style="{StaticResource SmallOutlineButton}"
+                                IsVisible="{Binding IsAdded}" Command="{Binding ToggleCommand}" />
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

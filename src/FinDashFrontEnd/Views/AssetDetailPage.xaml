@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:c="clr-namespace:FinDashFrontEnd.Controls"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
+             x:Class="FinDashFrontEnd.Views.AssetDetailPage"
+             x:DataType="vm:AssetDetailViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Barra superior -->
+        <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,16,16,4" ColumnSpacing="4">
+            <Button Text="{x:Static t:Icons.ArrowBack}" Style="{StaticResource NavIconButton}"
+                    Command="{Binding BackCommand}" SemanticProperties.Description="Volver" />
+            <Label Grid.Column="1" Text="{Binding Title}" Style="{StaticResource SectionText}" VerticalOptions="Center"
+                   SemanticProperties.HeadingLevel="Level1" />
+            <Button Grid.Column="2" Text="{Binding WatchlistText}" Style="{StaticResource SmallOutlineButton}"
+                    Command="{Binding ToggleWatchlistCommand}" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="16">
+
+                <c:NoticeBanner IsVisible="{Binding IsOffline}" Text="{Binding UpdatedText}" />
+
+                <!-- Precio -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Subtitle}" Style="{StaticResource CaptionText}" />
+                    <Label Text="{Binding PriceText}" Style="{StaticResource DisplayText}" />
+                    <Label Text="{Binding PriceSecondaryText}" Style="{StaticResource MonoCaption}" />
+                    <c:ChangeChip Text="{Binding ChangeText}" IsPositive="{Binding ChangePositive}"
+                                  HorizontalOptions="Start" Margin="0,6,0,0" />
+                </VerticalStackLayout>
+
+                <!-- Compra / venta (solo dólar) -->
+                <Border Style="{StaticResource Card}" Padding="20,16" IsVisible="{Binding IsFx}">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Compra" Style="{StaticResource CaptionText}" />
+                            <Label Text="{Binding FxBuyText}" Style="{StaticResource MonoStrong}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="Venta" Style="{StaticResource CaptionText}" />
+                            <Label Text="{Binding FxSellText}" Style="{StaticResource MonoStrong}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Gráfica -->
+                <Border Style="{StaticResource Card}" Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <c:SegmentedControl Items="{Binding RangeOptions}" SelectedIndex="{Binding RangeIndex}" />
+                        <Grid HeightRequest="200">
+                            <lvc:CartesianChart Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                                BackgroundColor="Transparent"
+                                                TooltipPosition="Hidden" LegendPosition="Hidden" ZoomMode="None"
+                                                SemanticProperties.Description="Gráfica del precio en el periodo elegido" />
+                            <ActivityIndicator IsRunning="{Binding IsChartLoading}" IsVisible="{Binding IsChartLoading}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding HighText}" Style="{StaticResource MonoCaption}" />
+                                <Label Text="{Binding LowText}" Style="{StaticResource MonoCaption}" />
+                            </VerticalStackLayout>
+                            <c:ChangeChip Grid.Column="1" Text="{Binding RangeChangeText}" IsPositive="{Binding RangeChangePositive}"
+                                          VerticalOptions="Center" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Posición -->
+                <Border Style="{StaticResource Card}" IsVisible="{Binding HasHolding}">
+                    <VerticalStackLayout Spacing="16">
+                        <Label Text="Su posición" Style="{StaticResource SectionText}" SemanticProperties.HeadingLevel="Level2" />
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="16">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Cantidad" Style="{StaticResource CaptionText}" />
+                                <Label Text="{Binding QuantityText}" Style="{StaticResource MonoText}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Costo promedio" Style="{StaticResource CaptionText}" />
+                                <Label Text="{Binding AvgCostText}" Style="{StaticResource MonoText}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Row="1" Spacing="2">
+                                <Label Text="Valor actual" Style="{StaticResource CaptionText}" />
+                                <Label Text="{Binding HoldingValueText}" Style="{StaticResource MonoText}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="2">
+                                <Label Text="Ganancia o pérdida" Style="{StaticResource CaptionText}" />
+                                <c:ChangeChip Text="{Binding PnlText}" IsPositive="{Binding PnlPositive}" Filled="False" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Aún no hay compras registradas de este activo." Style="{StaticResource CaptionText}"
+                       IsVisible="{Binding NoHolding}" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Acciones -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="12" Padding="16,12,16,16"
+              BackgroundColor="{DynamicResource SurfaceColor}">
+            <BoxView Grid.ColumnSpan="2" Style="{StaticResource Divider}" VerticalOptions="Start" Margin="-16,-12,-16,0" />
+            <Button Text="Crear alerta" Style="{StaticResource OutlineButton}" Command="{Binding CreateAlertCommand}" />
+            <Button Grid.Column="1" Text="Registrar compra" Command="{Binding RegisterBuyCommand}" />
+        </Grid>
+    </Grid>
+</ContentPage>

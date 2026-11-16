@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:c="clr-namespace:FinDashFrontEnd.Controls"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.PortfolioPage"
+             x:DataType="vm:PortfolioViewModel"
+             Title="Portafolio">
+
+    <Grid>
+        <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <ScrollView>
+                <VerticalStackLayout Padding="16,24,16,96" Spacing="16">
+
+                    <Label Text="Portafolio" Style="{StaticResource TitleText}" SemanticProperties.HeadingLevel="Level1" />
+
+                    <c:NoticeBanner IsVisible="{Binding IsOffline}" Text="{Binding OfflineText}" />
+                    <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+                    <!-- Resumen -->
+                    <Border Style="{StaticResource Card}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Valor actual" Style="{StaticResource CaptionText}" />
+                            <Label Text="{Binding ValueText}" Style="{StaticResource DisplayText}" />
+                            <Label Text="{Binding ValueSecondaryText}" Style="{StaticResource MonoCaption}" />
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,0">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Invertido" Style="{StaticResource CaptionText}" />
+                                    <Label Text="{Binding InvestedText}" Style="{StaticResource MonoText}" />
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                    <Label Text="Ganancia o pérdida" Style="{StaticResource CaptionText}" />
+                                    <c:ChangeChip Text="{Binding PnlText}" IsPositive="{Binding PnlPositive}" HorizontalOptions="Start" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <c:SegmentedControl Items="{Binding TabOptions}" SelectedIndex="{Binding TabIndex}" IsVisible="{Binding HasData}" />
+
+                    <!-- Posiciones -->
+                    <Label Text="Valor actual y ganancia o pérdida desde la compra" Style="{StaticResource CaptionText}"
+                           IsVisible="{Binding ShowHoldings}" Margin="4,-4,0,-4" />
+                    <Border Style="{StaticResource CardList}" IsVisible="{Binding ShowHoldings}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Holdings}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AssetRowViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource Divider}" IsVisible="{Binding ShowDivider}" />
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="16,12">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                                            </Grid.GestureRecognizers>
+                                            <Border Style="{StaticResource Avatar}">
+                                                <Label Text="{Binding Symbol}" Style="{StaticResource AvatarText}" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding Name}" Style="{StaticResource BodyMedium}" />
+                                                <Label Text="{Binding Subtitle}" Style="{StaticResource MonoCaption}" />
+                                            </VerticalStackLayout>
+                                            <VerticalStackLayout Grid.Column="2" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding ValueText}" Style="{StaticResource MonoText}" HorizontalOptions="End" />
+                                                <c:ChangeChip Text="{Binding ChangeText}" IsPositive="{Binding IsPositive}"
+                                                              Filled="False" HorizontalOptions="End" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Movimientos -->
+                    <Border Style="{StaticResource CardList}" IsVisible="{Binding ShowTransactions}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Transactions}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TransactionRowViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource Divider}" IsVisible="{Binding ShowDivider}" />
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="16,12">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                                            </Grid.GestureRecognizers>
+                                            <Border Style="{StaticResource Avatar}">
+                                                <Label Text="{Binding Symbol}" Style="{StaticResource AvatarText}" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding Title}" Style="{StaticResource BodyMedium}" />
+                                                <Label Text="{Binding Subtitle}" Style="{StaticResource MonoCaption}" />
+                                            </VerticalStackLayout>
+                                            <Label Grid.Column="2" Text="{Binding AmountText}" Style="{StaticResource MonoText}"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Sin movimientos -->
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding IsEmpty}">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{x:Static t:Icons.PieChart}" Style="{StaticResource IconText}" FontSize="36"
+                                   TextColor="{DynamicResource PrimaryColor}" HorizontalOptions="Center" />
+                            <Label Text="El portafolio está vacío" Style="{StaticResource BodyStrong}" HorizontalTextAlignment="Center" />
+                            <Label Text="Registre una compra de dólares o cripto para ver cuánto vale y cuánto ha ganado."
+                                   Style="{StaticResource CaptionText}" HorizontalTextAlignment="Center" />
+                            <Button Text="Registrar compra" Command="{Binding AddTransactionCommand}" Margin="0,8,0,0" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+        <Button Text="{x:Static t:Icons.Add}" Style="{StaticResource Fab}"
+                Command="{Binding AddTransactionCommand}" SemanticProperties.Description="Nueva transacción" />
+    </Grid>
+</ContentPage>

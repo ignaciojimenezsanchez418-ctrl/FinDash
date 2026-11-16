@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:c="clr-namespace:FinDashFrontEnd.Controls"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.AlertsPage"
+             x:DataType="vm:AlertsViewModel"
+             Title="Alertas">
+
+    <Grid>
+        <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding RefreshCommand}">
+            <ScrollView>
+                <VerticalStackLayout Padding="16,24,16,96" Spacing="16">
+
+                    <Label Text="Alertas" Style="{StaticResource TitleText}" SemanticProperties.HeadingLevel="Level1" />
+                    <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+                    <!-- Permiso negado (M6) -->
+                    <Border IsVisible="{Binding NotificationsDenied}" BackgroundColor="{DynamicResource WarnSoftColor}"
+                            StrokeShape="RoundRectangle 12" Padding="14,12">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                <Label Text="{x:Static t:Icons.NotificationsOff}" FontFamily="Icons" FontSize="18"
+                                       TextColor="{DynamicResource WarnColor}" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="Las notificaciones están desactivadas" FontFamily="InterSemiBold"
+                                       FontSize="13" TextColor="{DynamicResource WarnColor}" VerticalOptions="Center" />
+                            </Grid>
+                            <Label Text="Las alertas se siguen revisando, pero el teléfono no avisará cuando se disparen."
+                                   Style="{StaticResource CaptionText}" TextColor="{DynamicResource WarnColor}" />
+                            <Button Text="Abrir ajustes del sistema" Style="{StaticResource TextButton}" HorizontalOptions="Start"
+                                    TextColor="{DynamicResource WarnColor}" Padding="0" Command="{Binding OpenSystemSettingsCommand}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Activas -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Text="Mis alertas" Style="{StaticResource SectionText}" SemanticProperties.HeadingLevel="Level2" />
+                        <Label Grid.Column="1" Text="{Binding ActiveCountText}" Style="{StaticResource CaptionText}" VerticalOptions="Center" />
+                    </Grid>
+
+                    <Border Style="{StaticResource CardList}" IsVisible="{Binding HasActive}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Active}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AlertRowViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource Divider}" IsVisible="{Binding ShowDivider}" />
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="16,12,8,12">
+                                            <Border Style="{StaticResource Avatar}">
+                                                <Label Text="{Binding Symbol}" Style="{StaticResource AvatarText}" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <VerticalStackLayout.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                                                </VerticalStackLayout.GestureRecognizers>
+                                                <Label Text="{Binding Title}" Style="{StaticResource BodyMedium}" />
+                                                <Label Text="{Binding Subtitle}" Style="{StaticResource MonoCaption}" />
+                                            </VerticalStackLayout>
+                                            <Switch Grid.Column="2" IsToggled="{Binding IsActive}" VerticalOptions="Center"
+                                                    SemanticProperties.Description="Encender o apagar la alerta" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}" IsVisible="{Binding NoActive}">
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="{x:Static t:Icons.AddAlert}" Style="{StaticResource IconText}" FontSize="36"
+                                   TextColor="{DynamicResource PrimaryColor}" HorizontalOptions="Center" />
+                            <Label Text="Sin alertas" Style="{StaticResource BodyStrong}" HorizontalTextAlignment="Center" />
+                            <Label Text="Por ejemplo: avisar cuando el dólar baje de ₡500."
+                                   Style="{StaticResource CaptionText}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Disparadas -->
+                    <Label Text="Disparadas" Style="{StaticResource SectionText}" Margin="0,8,0,0"
+                           SemanticProperties.HeadingLevel="Level2" />
+
+                    <Border Style="{StaticResource CardList}" IsVisible="{Binding HasFired}">
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Fired}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FiredAlertRowViewModel">
+                                    <VerticalStackLayout>
+                                        <BoxView Style="{StaticResource Divider}" IsVisible="{Binding ShowDivider}" />
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" Padding="16,12">
+                                            <Grid.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding OpenCommand}" />
+                                            </Grid.GestureRecognizers>
+                                            <Border Style="{StaticResource Avatar}" BackgroundColor="{DynamicResource WarnSoftColor}">
+                                                <Label Text="{x:Static t:Icons.Notifications}" FontFamily="Icons" FontSize="20"
+                                                       TextColor="{DynamicResource WarnColor}"
+                                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                                <Label Text="{Binding Title}" Style="{StaticResource BodyMedium}" />
+                                                <Label Text="{Binding Subtitle}" Style="{StaticResource MonoCaption}" />
+                                            </VerticalStackLayout>
+                                            <Label Grid.Column="2" Text="{x:Static t:Icons.ChevronRight}" Style="{StaticResource IconText}"
+                                                   TextColor="{DynamicResource TextMutedColor}" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Ninguna alerta se ha disparado todavía." Style="{StaticResource CaptionText}"
+                           IsVisible="{Binding NoFired}" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </RefreshView>
+
+        <Button Text="{x:Static t:Icons.AddAlert}" Style="{StaticResource Fab}" FontSize="26"
+                Command="{Binding NewAlertCommand}" SemanticProperties.Description="Nueva alerta" />
+    </Grid>
+</ContentPage>

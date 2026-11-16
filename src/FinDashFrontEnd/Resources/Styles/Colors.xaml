@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<!--
+    Paleta de FinDash CR (aprobada en la pantalla de ejemplo).
+    Cada color tiene versión clara y oscura. Las páginas NO usan estas llaves
+    directamente: ThemeManager copia la versión del tema activo a la llave
+    semántica sin sufijo (por ejemplo PrimaryLight/PrimaryDark -> PrimaryColor)
+    y las vistas la consumen con {DynamicResource PrimaryColor}.
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Fondo de la pantalla -->
+    <Color x:Key="BgLight">#F6F7F9</Color>
+    <Color x:Key="BgDark">#0B1220</Color>
+
+    <!-- Tarjetas, barra inferior y campos -->
+    <Color x:Key="SurfaceLight">#FFFFFF</Color>
+    <Color x:Key="SurfaceDark">#141C2E</Color>
+
+    <!-- Superficie secundaria: controles segmentados, esqueletos de carga -->
+    <Color x:Key="Surface2Light">#EEF1F5</Color>
+    <Color x:Key="Surface2Dark">#1C2740</Color>
+
+    <!-- Bordes y divisores -->
+    <Color x:Key="BorderLight">#E3E6EB</Color>
+    <Color x:Key="BorderDark">#24304A</Color>
+
+    <!-- Texto -->
+    <Color x:Key="TextLight">#0F172A</Color>
+    <Color x:Key="TextDark">#E8ECF3</Color>
+    <Color x:Key="TextMutedLight">#5B6475</Color>
+    <Color x:Key="TextMutedDark">#9AA4B8</Color>
+
+    <!-- Primario: todo lo que se puede tocar -->
+    <Color x:Key="PrimaryLight">#2453D6</Color>
+    <Color x:Key="PrimaryDark">#6E95FF</Color>
+    <Color x:Key="OnPrimaryLight">#FFFFFF</Color>
+    <Color x:Key="OnPrimaryDark">#0B1220</Color>
+    <!-- Formato #AARRGGBB: primario con ~12 % / ~15 % de opacidad -->
+    <Color x:Key="PrimarySoftLight">#1F2453D6</Color>
+    <Color x:Key="PrimarySoftDark">#266E95FF</Color>
+
+    <!-- Ganancia (siempre acompañada de ▲) -->
+    <Color x:Key="GainLight">#0B7A45</Color>
+    <Color x:Key="GainDark">#34C47C</Color>
+    <Color x:Key="GainSoftLight">#E6F4EC</Color>
+    <Color x:Key="GainSoftDark">#133325</Color>
+
+    <!-- Pérdida (siempre acompañada de ▼) -->
+    <Color x:Key="LossLight">#C62828</Color>
+    <Color x:Key="LossDark">#FF6B6B</Color>
+    <Color x:Key="LossSoftLight">#FDECEC</Color>
+    <Color x:Key="LossSoftDark">#3A1A1F</Color>
+
+    <!-- Avisos: sin conexión, permisos -->
+    <Color x:Key="WarnLight">#92400E</Color>
+    <Color x:Key="WarnDark">#F5B547</Color>
+    <Color x:Key="WarnSoftLight">#FEF3C7</Color>
+    <Color x:Key="WarnSoftDark">#3A2A0A</Color>
+
+    <!-- Igual en ambos temas -->
+    <Color x:Key="TransparentColor">Transparent</Color>
+
+</ResourceDictionary>

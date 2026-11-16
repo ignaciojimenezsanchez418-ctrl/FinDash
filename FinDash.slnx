@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FinDash.Api/FinDash.Api.csproj" />
+    <Project Path="src/FinDash.Core/FinDash.Core.csproj" />
+    <Project Path="src/FinDashFrontEnd/FinDashFrontEnd.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FinDash.Tests/FinDash.Tests.csproj" />
+  </Folder>
+</Solution>

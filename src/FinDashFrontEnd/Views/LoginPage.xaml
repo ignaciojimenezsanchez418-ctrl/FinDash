@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="Iniciar sesión">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,72,24,32" Spacing="16" MaximumWidthRequest="480">
+
+            <!-- Marca -->
+            <Border BackgroundColor="{DynamicResource PrimaryColor}" StrokeShape="RoundRectangle 18"
+                    WidthRequest="64" HeightRequest="64" HorizontalOptions="Start">
+                <Label Text="{x:Static t:Icons.TrendingUp}" FontFamily="Icons" FontSize="34"
+                       TextColor="{DynamicResource OnPrimaryColor}"
+                       HorizontalOptions="Center" VerticalOptions="Center" />
+            </Border>
+            <VerticalStackLayout Spacing="4" Margin="0,8,0,16">
+                <Label Text="FinDash CR" Style="{StaticResource TitleText}" FontSize="28" SemanticProperties.HeadingLevel="Level1" />
+                <Label Text="Dólares y cripto en colones, en un solo lugar." Style="{StaticResource CaptionText}" FontSize="15" />
+            </VerticalStackLayout>
+
+            <!-- Correo -->
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Correo" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Label Text="{x:Static t:Icons.Mail}" Style="{StaticResource IconText}" FontSize="20" TextColor="{DynamicResource TextMutedColor}" />
+                        <Entry Grid.Column="1" Text="{Binding Email}" Placeholder="nombre@correo.com"
+                               Keyboard="Email" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
+                               ReturnType="Next" SemanticProperties.Description="Correo" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Contraseña -->
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Contraseña" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}" Padding="14,0,4,0">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                        <Label Text="{x:Static t:Icons.Lock}" Style="{StaticResource IconText}" FontSize="20" TextColor="{DynamicResource TextMutedColor}" />
+                        <Entry Grid.Column="1" Text="{Binding Password}" IsPassword="{Binding IsPasswordHidden}"
+                               Placeholder="Contraseña" ReturnType="Go" ReturnCommand="{Binding LoginCommand}"
+                               SemanticProperties.Description="Contraseña" />
+                        <Button Grid.Column="2" x:Name="EyeButton" Style="{StaticResource NavIconButton}" FontSize="20"
+                                TextColor="{DynamicResource TextMutedColor}"
+                                Command="{Binding TogglePasswordCommand}"
+                                SemanticProperties.Description="Mostrar u ocultar la contraseña" />
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+            <Grid Margin="0,8,0,0">
+                <Button Text="Entrar" Command="{Binding LoginCommand}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                   Color="{DynamicResource OnPrimaryColor}" HeightRequest="24"
+                                   HorizontalOptions="End" Margin="0,0,16,0" />
+            </Grid>
+
+            <Button Text="Crear cuenta" Style="{StaticResource TextButton}" HorizontalOptions="Center"
+                    Command="{Binding GoToRegisterCommand}" />
+
+            <Label IsVisible="{Binding IsDemo}" Style="{StaticResource CaptionText}" HorizontalTextAlignment="Center" Margin="0,16,0,0"
+                   Text="Modo de prueba: cualquier correo y una contraseña de 6 o más caracteres." />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

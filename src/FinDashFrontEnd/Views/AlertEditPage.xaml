@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:c="clr-namespace:FinDashFrontEnd.Controls"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.AlertEditPage"
+             x:DataType="vm:AlertEditViewModel"
+             Shell.PresentationMode="ModalAnimated"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid ColumnDefinitions="*,Auto" Padding="16,16,16,8">
+            <Label Text="{Binding Title}" Style="{StaticResource TitleText}" VerticalOptions="Center"
+                   SemanticProperties.HeadingLevel="Level1" />
+            <Button Grid.Column="1" Text="{x:Static t:Icons.Close}" Style="{StaticResource IconButton}"
+                    Command="{Binding BackCommand}" SemanticProperties.Description="Cerrar" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8,16,24" Spacing="16">
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Activo" Style="{StaticResource FieldLabel}" />
+                    <Border Style="{StaticResource FieldBox}">
+                        <Picker ItemsSource="{Binding Assets}" SelectedItem="{Binding SelectedAsset}"
+                                Title="Elegir activo" SemanticProperties.Description="Activo" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Avisar cuando el precio" Style="{StaticResource FieldLabel}" />
+                    <c:SegmentedControl Items="{Binding ConditionOptions}" SelectedIndex="{Binding ConditionIndex}" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Monto" Style="{StaticResource FieldLabel}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Border Style="{StaticResource FieldBox}">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                                <Label Text="{Binding CurrencySymbol}" Style="{StaticResource MonoText}" VerticalOptions="Center"
+                                       TextColor="{DynamicResource TextMutedColor}" />
+                                <Entry Grid.Column="1" Text="{Binding ThresholdText}" Keyboard="Numeric"
+                                       FontFamily="MonoMedium" SemanticProperties.Description="Monto" />
+                            </Grid>
+                        </Border>
+                        <c:SegmentedControl Grid.Column="1" WidthRequest="132" VerticalOptions="Center" Margin="8,0,0,0"
+                                            Items="{Binding CurrencyOptions}" SelectedIndex="{Binding CurrencyIndex}"
+                                            IsVisible="{Binding CanChooseCurrency}" />
+                    </Grid>
+                    <Label Text="{Binding ReferenceText}" Style="{StaticResource MonoCaption}" />
+                </VerticalStackLayout>
+
+                <Border Style="{StaticResource Card}" Padding="16">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Label Text="{x:Static t:Icons.Info}" Style="{StaticResource IconText}" FontSize="20"
+                               TextColor="{DynamicResource TextMutedColor}" VerticalOptions="Start" />
+                        <Label Grid.Column="1" Style="{StaticResource CaptionText}"
+                               Text="La alerta avisa una sola vez al cruzar el monto. Se vuelve a activar cuando el precio regresa al otro lado." />
+                    </Grid>
+                </Border>
+
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="2" Padding="16,8,16,16" Spacing="12">
+            <Grid>
+                <Button Text="Guardar alerta" Command="{Binding SaveCommand}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                   Color="{DynamicResource OnPrimaryColor}" HeightRequest="24"
+                                   HorizontalOptions="End" Margin="0,0,16,0" />
+            </Grid>
+            <Button Text="Eliminar alerta" Style="{StaticResource DangerButton}" IsVisible="{Binding IsEditing}"
+                    Command="{Binding DeleteCommand}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

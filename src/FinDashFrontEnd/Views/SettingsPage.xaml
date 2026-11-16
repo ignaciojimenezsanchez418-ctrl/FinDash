@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:c="clr-namespace:FinDashFrontEnd.Controls"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.SettingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="Ajustes">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,24,16,32" Spacing="24">
+
+            <Label Text="Ajustes" Style="{StaticResource TitleText}" SemanticProperties.HeadingLevel="Level1" />
+
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Moneda principal" Style="{StaticResource FieldLabel}" />
+                <c:SegmentedControl Items="{Binding CurrencyOptions}" SelectedIndex="{Binding BaseCurrencyIndex}" />
+                <Label Text="El patrimonio, el portafolio y las gráficas se muestran en esta moneda."
+                       Style="{StaticResource CaptionText}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Actualizar precios cada" Style="{StaticResource FieldLabel}" />
+                <c:SegmentedControl Items="{Binding RefreshOptions}" SelectedIndex="{Binding RefreshIndex}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Apariencia" Style="{StaticResource FieldLabel}" />
+                <c:SegmentedControl Items="{Binding ThemeOptions}" SelectedIndex="{Binding ThemeIndex}" />
+            </VerticalStackLayout>
+
+            <Border Style="{StaticResource CardList}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Padding="16,14">
+                    <Label Text="{x:Static t:Icons.AccountCircle}" Style="{StaticResource IconText}" FontSize="28"
+                           TextColor="{DynamicResource TextMutedColor}" />
+                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Cuenta" Style="{StaticResource CaptionText}" />
+                        <Label Text="{Binding Email}" Style="{StaticResource BodyMedium}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Solo en Debug: para probar estados sin backend -->
+            <VerticalStackLayout Spacing="8" IsVisible="{Binding IsDebug}">
+                <Label Text="Pruebas (solo en desarrollo)" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource CardList}">
+                    <VerticalStackLayout>
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,8,8,8">
+                            <Label Text="Simular sin conexión" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" IsToggled="{Binding SimulateOffline}" />
+                        </Grid>
+                        <BoxView Style="{StaticResource Divider}" />
+                        <Grid ColumnDefinitions="*,Auto" Padding="16,8,8,8">
+                            <Label Text="Simular notificaciones negadas" Style="{StaticResource BodyText}" VerticalOptions="Center" />
+                            <Switch Grid.Column="1" IsToggled="{Binding SimulateNotificationsDenied}" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <Button Text="Cerrar sesión" Style="{StaticResource DangerButton}" Command="{Binding LogoutCommand}" />
+
+            <Label Text="{Binding VersionText}" Style="{StaticResource CaptionText}" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

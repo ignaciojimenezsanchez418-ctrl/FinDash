@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FinDashFrontEnd.ViewModels"
+             xmlns:t="clr-namespace:FinDashFrontEnd.Theme"
+             x:Class="FinDashFrontEnd.Views.RegisterPage"
+             x:DataType="vm:RegisterViewModel"
+             Title="Crear cuenta">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,16,16,32" Spacing="16" MaximumWidthRequest="480">
+
+            <Button Text="{x:Static t:Icons.ArrowBack}" Style="{StaticResource NavIconButton}"
+                    HorizontalOptions="Start" Command="{Binding BackCommand}"
+                    SemanticProperties.Description="Volver" />
+
+            <VerticalStackLayout Spacing="4" Padding="8,0,8,8">
+                <Label Text="Crear cuenta" Style="{StaticResource TitleText}" SemanticProperties.HeadingLevel="Level1" />
+                <Label Text="El portafolio y las alertas quedan guardados en la cuenta." Style="{StaticResource CaptionText}" FontSize="15" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6" Padding="8,0">
+                <Label Text="Correo" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding Email}" Placeholder="nombre@correo.com" Keyboard="Email"
+                           IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" ReturnType="Next"
+                           SemanticProperties.Description="Correo" />
+                </Border>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6" Padding="8,0">
+                <Label Text="Contraseña" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Al menos 8 caracteres"
+                           ReturnType="Next" SemanticProperties.Description="Contraseña" />
+                </Border>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6" Padding="8,0">
+                <Label Text="Repetir contraseña" Style="{StaticResource FieldLabel}" />
+                <Border Style="{StaticResource FieldBox}">
+                    <Entry Text="{Binding ConfirmPassword}" IsPassword="True" Placeholder="Repetir contraseña"
+                           ReturnType="Go" ReturnCommand="{Binding RegisterCommand}"
+                           SemanticProperties.Description="Repetir contraseña" />
+                </Border>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" Padding="8,0" />
+
+            <Grid Margin="8,8,8,0">
+                <Button Text="Crear cuenta" Command="{Binding RegisterCommand}" />
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                   Color="{DynamicResource OnPrimaryColor}" HeightRequest="24"
+                                   HorizontalOptions="End" Margin="0,0,16,0" />
+            </Grid>
+
+            <Button Text="Ya tengo cuenta" Style="{StaticResource TextButton}" HorizontalOptions="Center"
+                    Command="{Binding BackCommand}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
