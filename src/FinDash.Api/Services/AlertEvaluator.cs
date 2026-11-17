@@ -23,19 +23,19 @@ public sealed class AlertEvaluator(FinDashDbContext db, QuoteStore store, TimePr
     public async Task<int> EvaluateAsync(CancellationToken ct)
     {
         var market = store.Current;
-        if (market.Fx is null) return 0;
-
         var now = time.GetUtcNow();
         var cooldown = TimeSpan.FromMinutes(Math.Max(0, options.Value.CooldownMinutes));
         var fired = 0;
 
         foreach (var entity in await db.PriceAlerts.ToListAsync(ct))
         {
-            var quote = market.Quote(entity.AssetId);
-            if (quote is null) continue;
-
             // Contrato §5: el dólar en CRC con el tipo de compra; la cripto en la moneda de la alerta.
-            var price = entity.Currency == Currency.USD ? quote.PriceUsd : quote.PriceCrc;
+            // Una alerta en USD no necesita tipo de cambio, así que se evalúa aunque falte.
+            var price = entity.Currency == Currency.USD
+                ? market.Crypto.GetValueOrDefault(entity.AssetId)?.PriceUsd ?? 0
+                : market.Quote(entity.AssetId)?.PriceCrc ?? 0;
+            if (price <= 0) continue;
+
             var result = AlertRuleEngine.Evaluate(entity.ToModel(), price, now, cooldown);
 
             entity.Apply(result.Alert);

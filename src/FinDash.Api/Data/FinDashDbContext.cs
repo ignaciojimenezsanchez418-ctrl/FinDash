@@ -29,7 +29,7 @@ public sealed class FinDashDbContext(DbContextOptions<FinDashDbContext> options)
 
         // SQLite no sabe ordenar ni comparar DateTimeOffset: se guarda como número.
         // Al pasar a SQL Server se quita esta línea y se regeneran las migraciones.
-        builder.Properties<DateTimeOffset>().HaveConversion<DateTimeOffsetToBinaryConverter>();
+        builder.Properties<DateTimeOffset>().HaveConversion<UtcTicksConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -102,3 +102,12 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Fin
     public FinDashDbContext CreateDbContext(string[] args) =>
         new(new DbContextOptionsBuilder<FinDashDbContext>().UseSqlite("Data Source=findash.db").Options);
 }
+
+/// <summary>
+/// Guarda un DateTimeOffset como ticks UTC. El DateTimeOffsetToBinaryConverter de EF ordena por
+/// la hora LOCAL, así que dos fechas con distinto offset quedarían en el orden equivocado. Al leer
+/// se devuelve en UTC.
+/// </summary>
+public sealed class UtcTicksConverter() : ValueConverter<DateTimeOffset, long>(
+    v => v.UtcTicks,
+    v => new DateTimeOffset(v, TimeSpan.Zero));
