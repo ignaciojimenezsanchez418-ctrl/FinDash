@@ -33,7 +33,11 @@ public sealed record PortfolioSummary(
     decimal DayChangeCrc,
     decimal DayChangePct,
     decimal FxRate,
-    IReadOnlyList<Holding> Holdings);
+    IReadOnlyList<Holding> Holdings,
+    decimal RealizedPnlCrc = 0);
+
+/// <summary>Precio actual de un activo en colones y su variación de 24 h.</summary>
+public sealed record AssetPrice(decimal PriceCrc, decimal Change24hPct);
 
 public sealed record OperationResult(bool Ok, string? Error = null)
 {

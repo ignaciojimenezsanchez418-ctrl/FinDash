@@ -1,0 +1,42 @@
+name: CI
+
+# Compila y prueba el backend (Core, Api y Tests) en cada push y pull request.
+# Con este check obligatorio en la protección de main, "main siempre compila" (sección 15).
+# La app MAUI no se compila aquí: necesita la carga de trabajo de Android.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restaurar paquetes y herramientas
+        run: |
+          dotnet restore tests/FinDash.Tests/FinDash.Tests.csproj
+          dotnet tool restore
+
+      - name: Compilar
+        run: dotnet build tests/FinDash.Tests/FinDash.Tests.csproj --no-restore --configuration Release
+
+      - name: Revisar que no falten migraciones
+        # Falla si alguien cambió las entidades y olvidó "dotnet ef migrations add".
+        run: dotnet ef migrations has-pending-model-changes --project src/FinDash.Api --no-build --configuration Release
+
+      - name: Pruebas
+        run: dotnet test tests/FinDash.Tests/FinDash.Tests.csproj --no-build --configuration Release --logger "trx;LogFileName=resultados.trx" --results-directory TestResults
+
+      - name: Subir resultados de las pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-pruebas
+          path: TestResults/*.trx
+          retention-days: 7
