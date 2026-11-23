@@ -3,6 +3,7 @@ using System;
 using FinDash.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -11,53 +12,57 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinDash.Api.Data.Migrations
 {
     [DbContext(typeof(FinDashDbContext))]
-    [Migration("20261117020106_InitialCreate")]
+    [Migration("20261123024927_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("FinDash.Api.Data.AlertEventEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AlertId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AssetId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Condition")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
-                    b.Property<long?>("DeliveredAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset?>("DeliveredAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<decimal>("PriceAtTrigger")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<decimal>("Threshold")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
-                    b.Property<long>("TriggeredAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("TriggeredAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -72,27 +77,27 @@ namespace FinDash.Api.Data.Migrations
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Source")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(16)");
 
                     b.HasKey("Id");
 
@@ -240,46 +245,46 @@ namespace FinDash.Api.Data.Migrations
             modelBuilder.Entity("FinDash.Api.Data.PriceAlertEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AssetId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Condition")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
-                    b.Property<long>("CreatedAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bit");
 
                     b.Property<decimal?>("LastPrice")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
-                    b.Property<long?>("LastTriggeredAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset?>("LastTriggeredAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("State")
                         .IsRequired()
                         .HasMaxLength(16)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(16)");
 
                     b.Property<decimal>("Threshold")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -294,30 +299,32 @@ namespace FinDash.Api.Data.Migrations
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("AssetId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<long>("CapturedAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("CapturedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<decimal>("Change24hPct")
                         .HasPrecision(9, 4)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(9,4)");
 
                     b.Property<decimal>("PriceCrc")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<decimal>("PriceUsd")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<decimal?>("SellCrc")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.HasKey("Id");
 
@@ -330,46 +337,46 @@ namespace FinDash.Api.Data.Migrations
             modelBuilder.Entity("FinDash.Api.Data.TransactionEntity", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AssetId")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<long>("CreatedAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("Fee")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<decimal>("FxRate")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<string>("PriceCurrency")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<decimal>("Quantity")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -384,28 +391,28 @@ namespace FinDash.Api.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("BaseCurrency")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(8)");
 
-                    b.Property<long>("CreatedAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("DisplayName")
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -418,13 +425,13 @@ namespace FinDash.Api.Data.Migrations
             modelBuilder.Entity("FinDash.Api.Data.WatchlistItem", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AssetId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<long>("AddedAt")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("UserId", "AssetId");
 

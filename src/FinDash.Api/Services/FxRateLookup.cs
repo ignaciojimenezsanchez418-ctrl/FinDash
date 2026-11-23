@@ -1,4 +1,5 @@
 using FinDash.Api.Data;
+using FinDash.Api.Integrations;
 using FinDash.Core.Interfaces;
 using FinDash.Core.Models;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,7 @@ public sealed class FxRateLookup(FinDashDbContext db, IExchangeRateProvider fx, 
             var rates = await fx.GetHistoryAsync(day.AddDays(-7), day, ct);
             if (rates.Count > 0) return rates[^1].Buy;
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (ex is HttpRequestException or RateLimitedException)
         {
             log.LogWarning("No se pudo obtener el tipo de cambio del {Date}: {Message}", day, ex.Message);
         }

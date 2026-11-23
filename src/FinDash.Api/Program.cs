@@ -25,9 +25,10 @@ services.AddProblemDetails();
 services.AddOpenApi();
 
 // ---------- Base de datos (D14) ----------
-// La configuración se lee al resolver, no aquí, para que las pruebas puedan cambiarla.
+// SQL Server; SQLite solo en las pruebas (Database:Provider). La configuración se lee al
+// resolver, no aquí, para que las pruebas puedan cambiarla.
 services.AddDbContext<FinDashDbContext>((sp, o) =>
-    o.UseSqlite(sp.GetRequiredService<IConfiguration>().GetConnectionString("Default")));
+    o.UseConfiguredDatabase(sp.GetRequiredService<IConfiguration>()));
 
 // ---------- Autenticación JWT (D15, RNF-06) ----------
 services.AddOptions<JwtOptions>()
@@ -74,7 +75,7 @@ services.AddRateLimiter(o =>
 });
 
 // ---------- Fuentes de precios (D1) ----------
-// Providers:Mode = Auto (real si hay llave, falso si no), Real o Fake.
+// Providers:Mode = Real (por defecto) o Fake. Ver ProviderMode.
 services.AddSingleton(TimeProvider.System);
 services.Configure<BccrOptions>(builder.Configuration.GetSection("Bccr"));
 services.AddSingleton(sp => new CallBudget(
@@ -85,6 +86,8 @@ services.AddHttpClient<CoinGeckoProvider>((sp, http) =>
     var config = sp.GetRequiredService<IConfiguration>();
     http.BaseAddress = new Uri(config["CoinGecko:BaseUrl"] ?? "https://api.coingecko.com/api/v3/");
     http.Timeout = TimeSpan.FromSeconds(15);
+    // Sin User-Agent la API pública de CoinGecko responde 403.
+    http.DefaultRequestHeaders.UserAgent.ParseAdd("FinDash/1.0");
     if (config["CoinGecko:ApiKey"] is { Length: > 0 } key) http.DefaultRequestHeaders.Add("x-cg-demo-api-key", key);
 });
 services.AddHttpClient<BccrProvider>((sp, http) =>
@@ -94,12 +97,20 @@ services.AddHttpClient<BccrProvider>((sp, http) =>
 });
 services.AddSingleton<FakeMarketDataProvider>();
 services.AddSingleton<FakeExchangeRateProvider>();
-services.AddTransient<IMarketDataProvider>(sp => ProviderMode.UseRealCoinGecko(sp.GetRequiredService<IConfiguration>())
-    ? sp.GetRequiredService<CoinGeckoProvider>()
-    : sp.GetRequiredService<FakeMarketDataProvider>());
-services.AddTransient<IExchangeRateProvider>(sp => ProviderMode.UseRealBccr(sp.GetRequiredService<IConfiguration>())
-    ? sp.GetRequiredService<BccrProvider>()
-    : sp.GetRequiredService<FakeExchangeRateProvider>());
+services.AddTransient<IMarketDataProvider>(sp => ProviderMode.UseFake(sp.GetRequiredService<IConfiguration>())
+    ? sp.GetRequiredService<FakeMarketDataProvider>()
+    : sp.GetRequiredService<CoinGeckoProvider>());
+services.AddTransient<IExchangeRateProvider>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    if (ProviderMode.UseFake(config)) return sp.GetRequiredService<FakeExchangeRateProvider>();
+
+    var coinGecko = sp.GetRequiredService<CoinGeckoProvider>();
+    return ProviderMode.HasBccrCredentials(config)
+        ? new FallbackExchangeRateProvider(
+            sp.GetRequiredService<BccrProvider>(), coinGecko, sp.GetRequiredService<ILogger<FallbackExchangeRateProvider>>())
+        : coinGecko;
+});
 
 // ---------- Servicios de negocio ----------
 services.AddMemoryCache();
@@ -120,9 +131,9 @@ services.AddHostedService<AlertWorker>();
 
 var app = builder.Build();
 
-// Crea o actualiza la base con las migraciones al arrancar.
+// Crea o actualiza la base al arrancar.
 await using (var scope = app.Services.CreateAsyncScope())
-    await scope.ServiceProvider.GetRequiredService<FinDashDbContext>().Database.MigrateAsync();
+    await DatabaseProvider.PrepareAsync(scope.ServiceProvider.GetRequiredService<FinDashDbContext>());
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

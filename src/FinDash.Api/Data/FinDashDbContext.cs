@@ -27,9 +27,10 @@ public sealed class FinDashDbContext(DbContextOptions<FinDashDbContext> options)
         builder.Properties<AlertCondition>().HaveConversion<string>().HaveMaxLength(8);
         builder.Properties<AlertState>().HaveConversion<string>().HaveMaxLength(16);
 
-        // SQLite no sabe ordenar ni comparar DateTimeOffset: se guarda como número.
-        // Al pasar a SQL Server se quita esta línea y se regeneran las migraciones.
-        builder.Properties<DateTimeOffset>().HaveConversion<UtcTicksConverter>();
+        // SQL Server guarda DateTimeOffset nativo (datetimeoffset). SQLite (solo pruebas) no sabe
+        // ordenarlo ni compararlo: ahí se guarda como número.
+        if (Database.IsSqlite())
+            builder.Properties<DateTimeOffset>().HaveConversion<UtcTicksConverter>();
     }
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -96,15 +97,20 @@ public sealed class FinDashDbContext(DbContextOptions<FinDashDbContext> options)
     }
 }
 
-/// <summary>Lo usa "dotnet ef" para crear migraciones sin arrancar la API.</summary>
+/// <summary>
+/// Lo usa "dotnet ef" para crear migraciones sin arrancar la API. Las migraciones son de SQL Server;
+/// no se conecta a ninguna base para generarlas.
+/// </summary>
 public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<FinDashDbContext>
 {
     public FinDashDbContext CreateDbContext(string[] args) =>
-        new(new DbContextOptionsBuilder<FinDashDbContext>().UseSqlite("Data Source=findash.db").Options);
+        new(new DbContextOptionsBuilder<FinDashDbContext>()
+            .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=FinDashCR;Trusted_Connection=True")
+            .Options);
 }
 
 /// <summary>
-/// Guarda un DateTimeOffset como ticks UTC. El DateTimeOffsetToBinaryConverter de EF ordena por
+/// Solo para SQLite (pruebas). Guarda un DateTimeOffset como ticks UTC. El DateTimeOffsetToBinaryConverter de EF ordena por
 /// la hora LOCAL, así que dos fechas con distinto offset quedarían en el orden equivocado. Al leer
 /// se devuelve en UTC.
 /// </summary>

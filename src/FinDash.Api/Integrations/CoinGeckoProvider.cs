@@ -6,12 +6,13 @@ using FinDash.Core.Models;
 namespace FinDash.Api.Integrations;
 
 /// <summary>
-/// Cliente de CoinGecko (plan Demo). La llave va en el encabezado x-cg-demo-api-key y vive
-/// solo en la configuración del servidor (D13). Todas las cripto se piden en UNA llamada.
+/// Cliente de CoinGecko. Funciona sin llave (API pública); con la llave Demo, que va en el
+/// encabezado x-cg-demo-api-key y vive solo en el servidor (D13), tiene más margen.
+/// Todas las cripto se piden en UNA llamada. También da el tipo de cambio de respaldo.
 /// Si falla lanza HttpRequestException (contrato §3) o RateLimitedException si se cuidó el límite.
 /// </summary>
 public sealed class CoinGeckoProvider(HttpClient http, CallBudget budget, TimeProvider time, ILogger<CoinGeckoProvider> log)
-    : IMarketDataProvider
+    : IMarketDataProvider, IExchangeRateProvider
 {
     const string Api = "CoinGecko";
 
@@ -28,6 +29,25 @@ public sealed class CoinGeckoProvider(HttpClient http, CallBudget budget, TimePr
         var days = range switch { ChartRange.Day => 1, ChartRange.Week => 7, ChartRange.Month => 30, _ => 365 };
         var json = await GetAsync($"coins/{Uri.EscapeDataString(assetId)}/market_chart?vs_currency=usd&days={days}", ct);
         return ParseMarketChart(json);
+    }
+
+    public async Task<FxQuote> GetLatestAsync(CancellationToken ct = default) => (await GetUsdCrcAsync(ct))[^1];
+
+    /// <summary>
+    /// CoinGecko no tiene historial en colones: devuelve el valor de hace 24 h y el actual,
+    /// sin importar el rango pedido.
+    /// </summary>
+    public async Task<IReadOnlyList<FxQuote>> GetHistoryAsync(DateOnly from, DateOnly to, CancellationToken ct = default) =>
+        await GetUsdCrcAsync(ct);
+
+    /// <summary>
+    /// Tipo de cambio de respaldo (riesgo de la sección 14): CoinGecko no cotiza "el dólar", así que
+    /// se usa Tether (USDT ≈ 1 USD) en colones.
+    /// </summary>
+    async Task<List<FxQuote>> GetUsdCrcAsync(CancellationToken ct)
+    {
+        var json = await GetAsync("simple/price?ids=tether&vs_currencies=usd,crc&include_24hr_change=true", ct);
+        return ParseUsdCrc(json, time.GetUtcNow());
     }
 
     async Task<string> GetAsync(string path, CancellationToken ct)
@@ -75,6 +95,27 @@ public sealed class CoinGeckoProvider(HttpClient http, CallBudget budget, TimePr
         foreach (var p in prices.EnumerateArray())
             points.Add(new HistoryPoint(DateTimeOffset.FromUnixTimeMilliseconds((long)p[0].GetDouble()), ToDecimal(p[1])));
         return points;
+    }
+
+    /// <summary>
+    /// {"tether":{"usd":0.9986,"crc":446.22,"crc_24h_change":-0.04}}. Colones por dólar = crc ÷ usd,
+    /// que corrige que USDT no valga exactamente 1 dólar. Compra = venta (CoinGecko da un solo precio).
+    /// </summary>
+    internal static List<FxQuote> ParseUsdCrc(string json, DateTimeOffset now)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("tether", out var t)
+            || !t.TryGetProperty("usd", out var usd) || usd.ValueKind != JsonValueKind.Number || ToDecimal(usd) == 0
+            || !t.TryGetProperty("crc", out var crc) || crc.ValueKind != JsonValueKind.Number)
+        {
+            throw new HttpRequestException("CoinGecko no devolvió el precio de Tether en colones.");
+        }
+
+        var rate = Math.Round(ToDecimal(crc) / ToDecimal(usd), 2);
+        var change = t.TryGetProperty("crc_24h_change", out var c) && c.ValueKind == JsonValueKind.Number ? ToDecimal(c) : 0m;
+        var yesterday = Math.Round(rate / (1 + change / 100), 2);
+
+        return [new FxQuote(yesterday, yesterday, now.AddDays(-1)), new FxQuote(rate, rate, now)];
     }
 
     /// <summary>CoinGecko a veces manda notación científica (1.2e-05).</summary>

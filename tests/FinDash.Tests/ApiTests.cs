@@ -21,6 +21,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.UseSetting("Database:Provider", "Sqlite");
         builder.UseSetting("ConnectionStrings:Default", $"Data Source={_dbPath}");
         builder.UseSetting("Jwt:Key", "clave-solo-para-pruebas-de-integracion-0123456789");
         builder.UseSetting("Providers:Mode", "Fake");
