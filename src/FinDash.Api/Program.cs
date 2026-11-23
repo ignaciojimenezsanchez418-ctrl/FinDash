@@ -77,7 +77,6 @@ services.AddRateLimiter(o =>
 // ---------- Fuentes de precios (D1) ----------
 // Providers:Mode = Real (por defecto) o Fake. Ver ProviderMode.
 services.AddSingleton(TimeProvider.System);
-services.Configure<BccrOptions>(builder.Configuration.GetSection("Bccr"));
 services.AddSingleton(sp => new CallBudget(
     sp.GetRequiredService<IConfiguration>().GetValue("CoinGecko:MaxCallsPerMinute", 25),
     sp.GetRequiredService<TimeProvider>()));
@@ -90,27 +89,14 @@ services.AddHttpClient<CoinGeckoProvider>((sp, http) =>
     http.DefaultRequestHeaders.UserAgent.ParseAdd("FinDash/1.0");
     if (config["CoinGecko:ApiKey"] is { Length: > 0 } key) http.DefaultRequestHeaders.Add("x-cg-demo-api-key", key);
 });
-services.AddHttpClient<BccrProvider>((sp, http) =>
-{
-    http.BaseAddress = new Uri(sp.GetRequiredService<IOptions<BccrOptions>>().Value.BaseUrl);
-    http.Timeout = TimeSpan.FromSeconds(20);
-});
 services.AddSingleton<FakeMarketDataProvider>();
 services.AddSingleton<FakeExchangeRateProvider>();
 services.AddTransient<IMarketDataProvider>(sp => ProviderMode.UseFake(sp.GetRequiredService<IConfiguration>())
     ? sp.GetRequiredService<FakeMarketDataProvider>()
     : sp.GetRequiredService<CoinGeckoProvider>());
-services.AddTransient<IExchangeRateProvider>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    if (ProviderMode.UseFake(config)) return sp.GetRequiredService<FakeExchangeRateProvider>();
-
-    var coinGecko = sp.GetRequiredService<CoinGeckoProvider>();
-    return ProviderMode.HasBccrCredentials(config)
-        ? new FallbackExchangeRateProvider(
-            sp.GetRequiredService<BccrProvider>(), coinGecko, sp.GetRequiredService<ILogger<FallbackExchangeRateProvider>>())
-        : coinGecko;
-});
+services.AddTransient<IExchangeRateProvider>(sp => ProviderMode.UseFake(sp.GetRequiredService<IConfiguration>())
+    ? sp.GetRequiredService<FakeExchangeRateProvider>()
+    : sp.GetRequiredService<CoinGeckoProvider>());
 
 // ---------- Servicios de negocio ----------
 services.AddMemoryCache();

@@ -8,7 +8,7 @@ namespace FinDash.Api.Integrations;
 /// <summary>
 /// Cliente de CoinGecko. Funciona sin llave (API pública); con la llave Demo, que va en el
 /// encabezado x-cg-demo-api-key y vive solo en el servidor (D13), tiene más margen.
-/// Todas las cripto se piden en UNA llamada. También da el tipo de cambio de respaldo.
+/// Todas las cripto se piden en UNA llamada. También es la fuente del tipo de cambio USD/CRC.
 /// Si falla lanza HttpRequestException (contrato §3) o RateLimitedException si se cuidó el límite.
 /// </summary>
 public sealed class CoinGeckoProvider(HttpClient http, CallBudget budget, TimeProvider time, ILogger<CoinGeckoProvider> log)
@@ -41,8 +41,8 @@ public sealed class CoinGeckoProvider(HttpClient http, CallBudget budget, TimePr
         await GetUsdCrcAsync(ct);
 
     /// <summary>
-    /// Tipo de cambio de respaldo (riesgo de la sección 14): CoinGecko no cotiza "el dólar", así que
-    /// se usa Tether (USDT ≈ 1 USD) en colones.
+    /// Tipo de cambio USD/CRC: CoinGecko no cotiza "el dólar", así que se usa Tether (USDT ≈ 1 USD)
+    /// en colones.
     /// </summary>
     async Task<List<FxQuote>> GetUsdCrcAsync(CancellationToken ct)
     {

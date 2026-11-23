@@ -17,8 +17,7 @@ public sealed class PriceOptions
     /// </summary>
     public int CryptoRefreshMinutes { get; set; } = 5;
 
-    /// <summary>El BCCR publica una vez al día.</summary>
-    public int FxRefreshHours { get; set; } = 6;
+    public int FxRefreshHours { get; set; } = 1;
 }
 
 /// <summary>

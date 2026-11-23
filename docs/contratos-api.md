@@ -11,7 +11,7 @@ Versión 1 · 16 nov 2026 · Para aprobar a más tardar el miércoles 18 nov.
 | Ids | La app genera el `Guid` de `Transaction` y `PriceAlert` (sus modelos ya lo hacen). La API lo acepta y responde igual si llega repetido. |
 | Errores | `ProblemDetails` (RFC 9457). El mensaje para el usuario va en `detail`, en español. La app lo pasa a `OperationResult.Fail(detail)`. |
 | Autenticación | `Authorization: Bearer <jwt>` en todo excepto `/api/auth/*`. Sin token: 401. El usuario se toma del claim `sub`, nunca del cuerpo. |
-| Llaves | CoinGecko, BCCR y el secreto JWT solo en user-secrets (local) y en la configuración de App Service (Azure). Nunca en el repositorio ni en la app. |
+| Llaves | CoinGecko y el secreto JWT solo en user-secrets (local) y en la configuración de App Service (Azure). Nunca en el repositorio ni en la app. |
 
 ## 2. Endpoints (mapeo 1 a 1 con `Services/IServices.cs` de la app)
 
@@ -65,7 +65,7 @@ La interfaz de la app no tiene un método para marcar eventos como entregados. P
 | Interfaz | La implementa | La usa |
 | --- | --- | --- |
 | `IMarketDataProvider` | Integraciones (CoinGeckoProvider y un FakeMarketDataProvider para desarrollo y demo) | PriceService y el endpoint de historial |
-| `IExchangeRateProvider` | Integraciones (BccrProvider, con respaldo en el último valor guardado) | PriceService y el endpoint de historial |
+| `IExchangeRateProvider` | Integraciones (CoinGeckoProvider, con Tether en colones; si falla se conserva el último valor guardado) | PriceService y el endpoint de historial |
 | `IPortfolioService` | Backend (EF Core), usando `PortfolioCalculator` de Core | PortfolioController |
 | `IAlertService` | Backend (EF Core) | AlertsController |
 
@@ -82,8 +82,8 @@ Los proveedores lanzan `HttpRequestException` si fallan. PriceService la registr
 | Id | bigint identity | PK |
 | AssetId | nvarchar(50) | FK a Assets; `usd` para el tipo de cambio |
 | PriceUsd | decimal(18,8) | 1 para `usd` |
-| PriceCrc | decimal(18,8) | Para `usd` es el tipo de compra (317) |
-| SellCrc | decimal(18,8) null | Solo para `usd`: tipo de venta (318) |
+| PriceCrc | decimal(18,8) | Para `usd` es el tipo de cambio en colones |
+| SellCrc | decimal(18,8) null | Solo para `usd`: igual a `PriceCrc` (CoinGecko da un solo valor) |
 | Change24hPct | decimal(9,4) | |
 | CapturedAt | datetimeoffset | Índice `(AssetId, CapturedAt DESC)` |
 

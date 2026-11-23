@@ -8,7 +8,7 @@ namespace FinDash.Api.Services;
 
 /// <summary>
 /// Trae precios y tipo de cambio, los guarda en PriceSnapshots y actualiza la caché. Es lo
-/// ÚNICO que llama a CoinGecko y al BCCR por precios actuales (sección 9 del documento).
+/// ÚNICO que llama a CoinGecko por precios y tipo de cambio actuales (sección 9 del documento).
 /// Si una fuente falla, se registra en los logs y se conserva el último dato (contrato §3).
 /// </summary>
 public sealed class PriceRefresher(

@@ -1,9 +1,11 @@
+using FinDash.Api;
 using FinDash.Api.Integrations;
 using FinDash.Core.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace FinDash.Tests;
 
-/// <summary>Mapeo de respuestas de CoinGecko y del BCCR, con respuestas guardadas (sin red).</summary>
+/// <summary>Mapeo de respuestas de CoinGecko, con respuestas guardadas (sin red).</summary>
 public class ProviderParsingTests
 {
     [Fact]
@@ -41,7 +43,7 @@ public class ProviderParsingTests
     }
 
     [Fact]
-    public void CoinGecko_TipoDeCambioDeRespaldo()
+    public void CoinGecko_TipoDeCambioUsdCrc()
     {
         const string json = """{ "tether": { "usd": 0.998, "crc": 446.0, "crc_24h_change": 1.0 } }""";
         var now = new DateTimeOffset(2026, 11, 22, 12, 0, 0, TimeSpan.Zero);
@@ -63,47 +65,6 @@ public class ProviderParsingTests
     }
 
     [Fact]
-    public void Bccr_RespuestaConXmlEscapadoAdentro()
-    {
-        const string xml = """
-            <?xml version="1.0" encoding="utf-8"?>
-            <string xmlns="http://ws.sdde.bccr.fi.cr">&lt;Datos_de_INGC011_CAT_INDICADORECONOMIC&gt;
-              &lt;INGC011_CAT_INDICADORECONOMIC&gt;
-                &lt;COD_INDICADORINTERNO&gt;317&lt;/COD_INDICADORINTERNO&gt;
-                &lt;DES_FECHA&gt;2026-11-13T00:00:00-06:00&lt;/DES_FECHA&gt;
-                &lt;NUM_VALOR&gt;502.95000000&lt;/NUM_VALOR&gt;
-              &lt;/INGC011_CAT_INDICADORECONOMIC&gt;
-              &lt;INGC011_CAT_INDICADORECONOMIC&gt;
-                &lt;COD_INDICADORINTERNO&gt;317&lt;/COD_INDICADORINTERNO&gt;
-                &lt;DES_FECHA&gt;2026-11-16T00:00:00-06:00&lt;/DES_FECHA&gt;
-                &lt;NUM_VALOR&gt;503.12000000&lt;/NUM_VALOR&gt;
-              &lt;/INGC011_CAT_INDICADORECONOMIC&gt;
-            &lt;/Datos_de_INGC011_CAT_INDICADORECONOMIC&gt;</string>
-            """;
-
-        var values = BccrProvider.ParseIndicator(xml);
-
-        Assert.Equal(2, values.Count);
-        Assert.Equal(503.12m, values[new DateOnly(2026, 11, 16)]);
-        Assert.Equal(502.95m, values[new DateOnly(2026, 11, 13)]);
-    }
-
-    [Fact]
-    public void Bccr_XmlSinEnvolver()
-    {
-        const string xml = """
-            <Datos_de_INGC011_CAT_INDICADORECONOMIC>
-              <INGC011_CAT_INDICADORECONOMIC>
-                <DES_FECHA>2026-11-16T00:00:00-06:00</DES_FECHA>
-                <NUM_VALOR>509.48</NUM_VALOR>
-              </INGC011_CAT_INDICADORECONOMIC>
-            </Datos_de_INGC011_CAT_INDICADORECONOMIC>
-            """;
-
-        Assert.Equal(509.48m, BccrProvider.ParseIndicator(xml)[new DateOnly(2026, 11, 16)]);
-    }
-
-    [Fact]
     public void CallBudget_NoPasaDelMaximoPorMinuto()
     {
         var budget = new CallBudget(2, TimeProvider.System);
@@ -119,5 +80,18 @@ public class ProviderParsingTests
         var budget = new CallBudget(30, TimeProvider.System);
         budget.BlockFor(TimeSpan.FromMinutes(1));
         Assert.Throws<RateLimitedException>(() => budget.Take("X"));
+    }
+
+    [Theory]
+    [InlineData(null, false)]
+    [InlineData("Real", false)]
+    [InlineData("Auto", false)]
+    [InlineData("fake", true)]
+    public void ProviderMode_SoloUsaPreciosFalsosSiSePidenAPropósito(string? mode, bool fake)
+    {
+        var values = new Dictionary<string, string?>();
+        if (mode is not null) values["Providers:Mode"] = mode;
+        var config = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+        Assert.Equal(fake, ProviderMode.UseFake(config));
     }
 }

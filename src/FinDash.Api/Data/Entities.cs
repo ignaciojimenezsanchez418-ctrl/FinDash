@@ -23,7 +23,6 @@ public sealed class AssetEntity
     public required string Name { get; set; }
     public AssetKind Kind { get; set; }
 
-    /// <summary>"CoinGecko" o "BCCR".</summary>
     public required string Source { get; set; }
 
     public Asset ToModel() => new(Id, Symbol, Name, Kind);
@@ -138,10 +137,8 @@ public sealed class PriceSnapshot
     /// <summary>1 para "usd".</summary>
     public decimal PriceUsd { get; set; }
 
-    /// <summary>Para "usd" es el tipo de cambio de compra (317).</summary>
     public decimal PriceCrc { get; set; }
 
-    /// <summary>Solo para "usd": tipo de cambio de venta (318).</summary>
     public decimal? SellCrc { get; set; }
 
     public decimal Change24hPct { get; set; }
