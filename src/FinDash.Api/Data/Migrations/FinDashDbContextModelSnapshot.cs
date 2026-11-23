@@ -106,7 +106,7 @@ namespace FinDash.Api.Data.Migrations
                             Id = "usd",
                             Kind = "Fiat",
                             Name = "Dólar",
-                            Source = "BCCR",
+                            Source = "CoinGecko",
                             Symbol = "USD"
                         },
                         new

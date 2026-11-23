@@ -30,7 +30,7 @@ public static class SeedData
     ];
 
     static AssetEntity Fiat(string id, string symbol, string name) =>
-        new() { Id = id, Symbol = symbol, Name = name, Kind = AssetKind.Fiat, Source = "BCCR" };
+        new() { Id = id, Symbol = symbol, Name = name, Kind = AssetKind.Fiat, Source = "CoinGecko" };
 
     static AssetEntity Crypto(string id, string symbol, string name) =>
         new() { Id = id, Symbol = symbol, Name = name, Kind = AssetKind.Crypto, Source = "CoinGecko" };

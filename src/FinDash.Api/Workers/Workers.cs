@@ -17,8 +17,7 @@ public sealed class PriceOptions
     /// </summary>
     public int CryptoRefreshMinutes { get; set; } = 5;
 
-    /// <summary>El BCCR publica una vez al día.</summary>
-    public int FxRefreshHours { get; set; } = 6;
+    public int FxRefreshHours { get; set; } = 1;
 }
 
 /// <summary>
@@ -58,8 +57,8 @@ public sealed class PriceService(
                 }
                 if (now >= nextCrypto)
                 {
-                    await refresher.RefreshCryptoAsync(ct);
-                    nextCrypto = now + TimeSpan.FromMinutes(options.Value.CryptoRefreshMinutes);
+                    var ok = await refresher.RefreshCryptoAsync(ct);
+                    nextCrypto = now + (ok ? TimeSpan.FromMinutes(options.Value.CryptoRefreshMinutes) : TimeSpan.FromMinutes(1));
                 }
             }
             catch (Exception ex) when (!ct.IsCancellationRequested)

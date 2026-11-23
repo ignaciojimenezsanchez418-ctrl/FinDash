@@ -34,7 +34,7 @@ public class ReviewFindingsTests
     [Fact]
     public async Task AlertaEnUsd_SeEvaluaAunqueFalteElTipoDeCambio()
     {
-        // Servidor recién arrancado con el BCCR caído: hay precios cripto pero no tipo de cambio.
+        // Servidor recién arrancado sin tipo de cambio todavía: hay precios cripto pero no colones.
         await using var factory = new ApiFactory();
         var client = factory.CreateClient();
         var register = await client.PostAsJsonAsync("/api/auth/register", new Credentials("usd@correo.com", "clave-segura-1"));
