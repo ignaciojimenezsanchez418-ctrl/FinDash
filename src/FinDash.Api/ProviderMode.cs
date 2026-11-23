@@ -1,26 +1,17 @@
 namespace FinDash.Api;
 
 /// <summary>
-/// Decide si se usan las fuentes reales o las falsas. Providers:Mode:
-/// - Auto (por defecto): la fuente real solo si tiene sus credenciales configuradas.
-/// - Real: siempre las reales (CoinGecko funciona sin llave, con un límite más bajo).
-/// - Fake: siempre las falsas (pruebas, CI y plan B de la demo).
+/// Decide las fuentes de precios. Providers:Mode:
+/// - Real (por defecto): CoinGecko para las cripto, funcione o no con llave (sin llave usa la API
+///   pública, con un límite más bajo). Tipo de cambio: el BCCR si tiene correo y token, con
+///   CoinGecko de respaldo; si no tiene credenciales, CoinGecko directo.
+/// - Fake: precios falsos (pruebas, CI y plan B de la demo).
 /// </summary>
 public static class ProviderMode
 {
-    public static bool UseRealCoinGecko(IConfiguration config) => Mode(config) switch
-    {
-        "real" => true,
-        "fake" => false,
-        _ => !string.IsNullOrEmpty(config["CoinGecko:ApiKey"]),
-    };
+    public static bool UseFake(IConfiguration config) =>
+        string.Equals(config["Providers:Mode"]?.Trim(), "Fake", StringComparison.OrdinalIgnoreCase);
 
-    public static bool UseRealBccr(IConfiguration config) => Mode(config) switch
-    {
-        "real" => true,
-        "fake" => false,
-        _ => !string.IsNullOrEmpty(config["Bccr:Email"]) && !string.IsNullOrEmpty(config["Bccr:Token"]),
-    };
-
-    static string Mode(IConfiguration config) => (config["Providers:Mode"] ?? "Auto").Trim().ToLowerInvariant();
+    public static bool HasBccrCredentials(IConfiguration config) =>
+        !string.IsNullOrEmpty(config["Bccr:Email"]) && !string.IsNullOrEmpty(config["Bccr:Token"]);
 }

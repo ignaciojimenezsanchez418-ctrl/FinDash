@@ -1,4 +1,5 @@
 using FinDash.Api.Integrations;
+using FinDash.Core.Models;
 
 namespace FinDash.Tests;
 
@@ -37,6 +38,28 @@ public class ProviderParsingTests
         Assert.Equal(2, points.Count);
         Assert.Equal(DateTimeOffset.FromUnixTimeMilliseconds(1731715200000), points[0].Time);
         Assert.Equal(91_500m, points[1].PriceUsd);
+    }
+
+    [Fact]
+    public void CoinGecko_TipoDeCambioDeRespaldo()
+    {
+        const string json = """{ "tether": { "usd": 0.998, "crc": 446.0, "crc_24h_change": 1.0 } }""";
+        var now = new DateTimeOffset(2026, 11, 22, 12, 0, 0, TimeSpan.Zero);
+
+        var rates = CoinGeckoProvider.ParseUsdCrc(json, now);
+
+        // 446 ÷ 0.998 = 446.89; ayer = 446.89 ÷ 1.01 = 442.47
+        Assert.Equal(2, rates.Count);
+        Assert.Equal(new FxQuote(446.89m, 446.89m, now), rates[1]);
+        Assert.Equal(442.47m, rates[0].Buy);
+        Assert.Equal(now.AddDays(-1), rates[0].At);
+    }
+
+    [Fact]
+    public void CoinGecko_TipoDeCambioSinColones_LanzaHttpRequestException()
+    {
+        Assert.Throws<HttpRequestException>(() =>
+            CoinGeckoProvider.ParseUsdCrc("""{ "tether": { "usd": 1.0 } }""", DateTimeOffset.UtcNow));
     }
 
     [Fact]

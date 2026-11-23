@@ -17,11 +17,11 @@ namespace FinDash.Api.Data.Migrations
                 name: "Assets",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    Symbol = table.Column<string>(type: "TEXT", maxLength: 16, nullable: false),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Kind = table.Column<string>(type: "TEXT", maxLength: 16, nullable: false),
-                    Source = table.Column<string>(type: "TEXT", maxLength: 16, nullable: false)
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Symbol = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Kind = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false),
+                    Source = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,12 +32,12 @@ namespace FinDash.Api.Data.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
-                    DisplayName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: true),
-                    BaseCurrency = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    CreatedAt = table.Column<long>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    BaseCurrency = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,14 +48,14 @@ namespace FinDash.Api.Data.Migrations
                 name: "PriceSnapshots",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AssetId = table.Column<string>(type: "TEXT", nullable: false),
-                    PriceUsd = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    PriceCrc = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    SellCrc = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: true),
-                    Change24hPct = table.Column<decimal>(type: "TEXT", precision: 9, scale: 4, nullable: false),
-                    CapturedAt = table.Column<long>(type: "INTEGER", nullable: false)
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AssetId = table.Column<string>(type: "nvarchar(50)", nullable: false),
+                    PriceUsd = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    PriceCrc = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    SellCrc = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: true),
+                    Change24hPct = table.Column<decimal>(type: "decimal(9,4)", precision: 9, scale: 4, nullable: false),
+                    CapturedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -72,16 +72,16 @@ namespace FinDash.Api.Data.Migrations
                 name: "AlertEvents",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AlertId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AssetId = table.Column<string>(type: "TEXT", nullable: false),
-                    Condition = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    Threshold = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    Currency = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    PriceAtTrigger = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    TriggeredAt = table.Column<long>(type: "INTEGER", nullable: false),
-                    DeliveredAt = table.Column<long>(type: "INTEGER", nullable: true)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AlertId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssetId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Condition = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    Threshold = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    PriceAtTrigger = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    TriggeredAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    DeliveredAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -98,17 +98,17 @@ namespace FinDash.Api.Data.Migrations
                 name: "PriceAlerts",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AssetId = table.Column<string>(type: "TEXT", nullable: false),
-                    Condition = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    Threshold = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    Currency = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
-                    State = table.Column<string>(type: "TEXT", maxLength: 16, nullable: false),
-                    LastPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: true),
-                    LastTriggeredAt = table.Column<long>(type: "INTEGER", nullable: true),
-                    CreatedAt = table.Column<long>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssetId = table.Column<string>(type: "nvarchar(50)", nullable: false),
+                    Condition = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    Threshold = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    State = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false),
+                    LastPrice = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: true),
+                    LastTriggeredAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,17 +131,17 @@ namespace FinDash.Api.Data.Migrations
                 name: "Transactions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AssetId = table.Column<string>(type: "TEXT", nullable: false),
-                    Type = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    Quantity = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    PriceCurrency = table.Column<string>(type: "TEXT", maxLength: 8, nullable: false),
-                    Fee = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FxRate = table.Column<decimal>(type: "TEXT", precision: 18, scale: 8, nullable: false),
-                    CreatedAt = table.Column<long>(type: "INTEGER", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssetId = table.Column<string>(type: "nvarchar(50)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    Quantity = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    PriceCurrency = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    Fee = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FxRate = table.Column<decimal>(type: "decimal(18,8)", precision: 18, scale: 8, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -164,9 +164,9 @@ namespace FinDash.Api.Data.Migrations
                 name: "WatchlistItems",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AssetId = table.Column<string>(type: "TEXT", nullable: false),
-                    AddedAt = table.Column<long>(type: "INTEGER", nullable: false)
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssetId = table.Column<string>(type: "nvarchar(50)", nullable: false),
+                    AddedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {

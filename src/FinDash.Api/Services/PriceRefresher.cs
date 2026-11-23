@@ -70,7 +70,8 @@ public sealed class PriceRefresher(
             store.Update(s => s with { Fx = new CurrentFx(last.Buy, last.Sell, change, last.At), UpdatedAt = now, LastRefreshFailed = false });
             return true;
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex) when (ex is HttpRequestException or RateLimitedException
+                                   || ex is TaskCanceledException && !ct.IsCancellationRequested)
         {
             log.LogWarning("No se pudo actualizar el tipo de cambio: {Message}. Se usa el último guardado.", ex.Message);
             store.Update(s => s with { LastRefreshFailed = true });

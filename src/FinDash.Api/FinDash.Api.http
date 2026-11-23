@@ -1,0 +1,179 @@
+### Pruebas manuales de todos los endpoints (docs/contratos-api.md).
+### Arranque: dotnet run --project src/FinDash.Api   ·   Swagger: http://localhost:5182/swagger
+### Manda la 5 (login) antes que las demás: guarda el token que usan las otras.
+
+@host = http://localhost:5182
+
+### ---------- Salud y cuenta ----------
+
+### 1. La API está viva → 200
+GET {{host}}/api/health
+
+### 2. Crear cuenta → 201 con token (si ya existe → 409, también es correcto)
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "demo@findash.cr", "password": "12345678" }
+
+### 3. El mismo correo otra vez → 409 "Ya hay una cuenta con ese correo."
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "DEMO@findash.cr", "password": "12345678" }
+
+### 4. Contraseña corta → 400
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "otro@findash.cr", "password": "123" }
+
+### 5. Iniciar sesión → 200 con token (MANDAR ANTES DE LAS DEMÁS)
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "demo@findash.cr", "password": "12345678" }
+
+### 6. Contraseña incorrecta → 401 "Correo o contraseña incorrectos."
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "demo@findash.cr", "password": "malamala" }
+
+### ---------- Mercado ----------
+
+### 7. Precios SIN token → 401
+GET {{host}}/api/market/snapshot
+
+### 8. Precios → 200 con fx y todos los activos en USD y CRC
+GET {{host}}/api/market/snapshot
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 9. Catálogo de activos → 200
+GET {{host}}/api/assets
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 10. Buscar "bit" → 200 con Bitcoin (y Bitcoin Cash)
+GET {{host}}/api/assets/search?q=bit
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 11. Gráfica de bitcoin, 7 días (range = Day, Week, Month o Year) → 200
+GET {{host}}/api/market/history/bitcoin?range=Week
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 12. Gráfica del dólar → 200 (con el respaldo de CoinGecko: solo ayer y hoy)
+GET {{host}}/api/market/history/usd?range=Month
+Authorization: Bearer {{login.response.body.$.token}}
+
+### ---------- Watchlist ----------
+
+### 13. Agregar solana → 204
+PUT {{host}}/api/watchlist/solana
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 14. Ver la watchlist → 200
+GET {{host}}/api/watchlist
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 15. Quitar solana → 204
+DELETE {{host}}/api/watchlist/solana
+Authorization: Bearer {{login.response.body.$.token}}
+
+### ---------- Portafolio ----------
+
+### 16. Comprar 0.01 BTC a $60 000 + $2 de comisión → 201 (fxRate 0 = el servidor pone el tipo de cambio)
+POST {{host}}/api/portfolio/transactions
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "aaaaaaaa-0000-0000-0000-000000000001", "assetId": "bitcoin", "type": "Buy", "quantity": 0.01, "unitPrice": 60000, "priceCurrency": "USD", "fee": 2, "date": "2026-11-20", "fxRate": 0 }
+
+### 17. La misma compra otra vez (mismo id) → 201 sin duplicarla
+POST {{host}}/api/portfolio/transactions
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "aaaaaaaa-0000-0000-0000-000000000001", "assetId": "bitcoin", "type": "Buy", "quantity": 0.01, "unitPrice": 60000, "priceCurrency": "USD", "fee": 2, "date": "2026-11-20", "fxRate": 0 }
+
+### 18. Comprar 100 dólares a ₡510 → 201
+POST {{host}}/api/portfolio/transactions
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "aaaaaaaa-0000-0000-0000-000000000002", "assetId": "usd", "type": "Buy", "quantity": 100, "unitPrice": 510, "priceCurrency": "CRC", "fee": 0, "date": "2026-11-20", "fxRate": 0 }
+
+### 19. Vender más de lo que se tiene → 422 "No se puede vender más de lo que se tiene."
+POST {{host}}/api/portfolio/transactions
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "aaaaaaaa-0000-0000-0000-000000000003", "assetId": "bitcoin", "type": "Sell", "quantity": 1, "unitPrice": 60000, "priceCurrency": "USD", "fee": 0, "date": "2026-11-21", "fxRate": 0 }
+
+### 20. Precio cero → 400 "El precio debe ser mayor a cero."
+POST {{host}}/api/portfolio/transactions
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "aaaaaaaa-0000-0000-0000-000000000004", "assetId": "bitcoin", "type": "Buy", "quantity": 1, "unitPrice": 0, "priceCurrency": "USD", "fee": 0, "date": "2026-11-21", "fxRate": 0 }
+
+### 21. Cantidad de bitcoin que tengo → 200
+GET {{host}}/api/portfolio/quantity/bitcoin
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 22. Mis transacciones, la más reciente primero → 200
+GET {{host}}/api/portfolio/transactions
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 23. Resumen del portafolio en CRC y USD → 200
+GET {{host}}/api/portfolio/summary
+Authorization: Bearer {{login.response.body.$.token}}
+
+### ---------- Alertas ----------
+
+### 24. Crear alerta "bitcoin sube de $1" → 200 (ya se cumple: avisa una vez en el próximo minuto)
+PUT {{host}}/api/alerts/bbbbbbbb-0000-0000-0000-000000000001
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "bbbbbbbb-0000-0000-0000-000000000001", "assetId": "bitcoin", "condition": "Above", "threshold": 1, "currency": "USD" }
+
+### 25. Monto cero → 400 "El monto debe ser mayor a cero."
+PUT {{host}}/api/alerts/bbbbbbbb-0000-0000-0000-000000000002
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "id": "bbbbbbbb-0000-0000-0000-000000000002", "assetId": "bitcoin", "condition": "Above", "threshold": 0, "currency": "USD" }
+
+### 26. Mis alertas → 200
+GET {{host}}/api/alerts
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 27. Una alerta → 200 (con un id que no existe → 404)
+GET {{host}}/api/alerts/bbbbbbbb-0000-0000-0000-000000000001
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 28. ESPERA 1 MINUTO después de la 24. Alertas disparadas → 200 con "deliveredAt": null
+GET {{host}}/api/alerts/events
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 29. Marcar como notificadas → 204 (pega aquí el "id" del evento que salió en la 28)
+POST {{host}}/api/alerts/events/delivered
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "ids": ["PEGA-AQUI-EL-ID-DEL-EVENTO"] }
+
+### 30. Otra vez los eventos → 200, ahora con "deliveredAt" lleno
+GET {{host}}/api/alerts/events
+Authorization: Bearer {{login.response.body.$.token}}
+
+### 31. Desactivar la alerta → 204
+PATCH {{host}}/api/alerts/bbbbbbbb-0000-0000-0000-000000000001/active
+Authorization: Bearer {{login.response.body.$.token}}
+Content-Type: application/json
+
+{ "isActive": false }
+
+### 32. Borrar la alerta → 204 (el historial de eventos se conserva)
+DELETE {{host}}/api/alerts/bbbbbbbb-0000-0000-0000-000000000001
+Authorization: Bearer {{login.response.body.$.token}}

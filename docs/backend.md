@@ -20,8 +20,10 @@ dotnet run --project src/FinDash.Api
 
 - La API queda en `http://localhost:5182`; desde el emulador de Android es `http://10.0.2.2:5182`.
 - Swagger: `http://localhost:5182/swagger`.
-- Sin configurar nada, usa precios **falsos** (los mismos de `MockBackend` de la app), crea
-  `findash.db` y una llave JWT temporal.
+- Usa SQL Server: en local, la base `FinDashCR` en LocalDB (`(localdb)\MSSQLLocalDB`), que la
+  API crea y actualiza sola al arrancar. Solo las pruebas usan SQLite (`Database:Provider = Sqlite`).
+- Sin configurar nada, usa precios **reales** de la API pública de CoinGecko y el tipo de cambio
+  de CoinGecko (Tether en colones), y una llave JWT temporal.
 - No uses `dotnet build FinDash.slnx` en Linux o macOS sin la carga de trabajo de MAUI: la
   solución incluye la app. El CI compila solo el backend.
 
@@ -39,8 +41,9 @@ En App Service van como configuración: `Jwt__Key`, `CoinGecko__ApiKey`, `Bccr__
 Fuera de Development la API no arranca sin `Jwt:Key`.
 
 `Providers:Mode` decide las fuentes:
-- `Auto`: la real si tiene su llave.
-- `Real`: siempre las reales.
+- `Real` (por defecto): CoinGecko para las cripto, con o sin llave. Tipo de cambio: el BCCR si
+  tiene correo y token, con CoinGecko de respaldo si el BCCR no responde; sin credenciales,
+  CoinGecko directo.
 - `Fake`: siempre las falsas, para pruebas, CI y el plan B de la demo.
 
 ## Migraciones
@@ -57,7 +60,7 @@ El CI falla si alguien cambia el modelo y olvida la migración.
 ## Cómo funciona
 
 - **PriceService** pide todas las cripto del catálogo en UNA llamada a CoinGecko cada 5 min y
-  el tipo de cambio del BCCR cada 6 h. Guarda cada ciclo en `PriceSnapshots` y en una caché en
+  el tipo de cambio cada 6 h (BCCR, o CoinGecko si el BCCR no responde o no está configurado). Guarda cada ciclo en `PriceSnapshots` y en una caché en
   memoria compartida por todos los usuarios. `/api/market/snapshot` lee esa caché y nunca llama
   a CoinGecko (RNF-02).
 - **CallBudget** no deja pasar de 25 llamadas por minuto a CoinGecko. Ante un 429 espera lo que
@@ -76,11 +79,9 @@ El CI falla si alguien cambia el modelo y olvida la migración.
 
 ## Decisiones para revisar en equipo
 
-- **Base de datos: SQLite** para arrancar sin instalar nada y para el CI. El documento propone SQL
-  Server (D14). Para cambiar:
-  1. Paquete `Microsoft.EntityFrameworkCore.SqlServer` y `UseSqlServer`.
-  2. Quitar el conversor de `DateTimeOffset` en `FinDashDbContext`.
-  3. Borrar `Data/Migrations` y crear la migración de nuevo.
+- **Tipo de cambio de respaldo:** CoinGecko no cotiza el dólar; se usa Tether en colones, que da un
+  solo valor (compra = venta) y no tiene historial: la gráfica del dólar muestra solo hoy y ayer
+  mientras se use el respaldo.
 - **CoinGecko cada 5 min**, no cada 30–60 s (D2): además del límite por minuto, el plan Demo
   tiene un tope mensual de llamadas.
 - **Transacciones en USD:** si la app manda `fxRate` > 0, se guarda ese. Si manda 0, el servidor
@@ -93,5 +94,6 @@ El CI falla si alguien cambia el modelo y olvida la migración.
 ## Pendiente
 
 - Probar `BccrProvider` contra el servicio real cuando haya token. El formato que lee está
-  probado con una respuesta guardada.
+  probado con una respuesta guardada. Desde el rediseño del sitio del BCCR (agosto 2026) el servicio
+  `wsindicadoreseconomicos.asmx` respondió 503 en las pruebas; hay que confirmar la dirección nueva.
 - Bloque 2: clientes HTTP en la app, token en SecureStorage, caché SQLite y notificaciones.
