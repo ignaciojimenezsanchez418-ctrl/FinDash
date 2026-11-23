@@ -77,18 +77,7 @@ services.AddRateLimiter(o =>
 // ---------- Fuentes de precios (D1) ----------
 // Providers:Mode = Real (por defecto) o Fake. Ver ProviderMode.
 services.AddSingleton(TimeProvider.System);
-services.AddSingleton(sp => new CallBudget(
-    sp.GetRequiredService<IConfiguration>().GetValue("CoinGecko:MaxCallsPerMinute", 25),
-    sp.GetRequiredService<TimeProvider>()));
-services.AddHttpClient<CoinGeckoProvider>((sp, http) =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    http.BaseAddress = new Uri(config["CoinGecko:BaseUrl"] ?? "https://api.coingecko.com/api/v3/");
-    http.Timeout = TimeSpan.FromSeconds(15);
-    // Sin User-Agent la API pública de CoinGecko responde 403.
-    http.DefaultRequestHeaders.UserAgent.ParseAdd("FinDash/1.0");
-    if (config["CoinGecko:ApiKey"] is { Length: > 0 } key) http.DefaultRequestHeaders.Add("x-cg-demo-api-key", key);
-});
+services.AddCoinGecko();
 services.AddSingleton<FakeMarketDataProvider>();
 services.AddSingleton<FakeExchangeRateProvider>();
 services.AddTransient<IMarketDataProvider>(sp => ProviderMode.UseFake(sp.GetRequiredService<IConfiguration>())

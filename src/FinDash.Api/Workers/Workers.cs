@@ -57,8 +57,8 @@ public sealed class PriceService(
                 }
                 if (now >= nextCrypto)
                 {
-                    await refresher.RefreshCryptoAsync(ct);
-                    nextCrypto = now + TimeSpan.FromMinutes(options.Value.CryptoRefreshMinutes);
+                    var ok = await refresher.RefreshCryptoAsync(ct);
+                    nextCrypto = now + (ok ? TimeSpan.FromMinutes(options.Value.CryptoRefreshMinutes) : TimeSpan.FromMinutes(1));
                 }
             }
             catch (Exception ex) when (!ct.IsCancellationRequested)

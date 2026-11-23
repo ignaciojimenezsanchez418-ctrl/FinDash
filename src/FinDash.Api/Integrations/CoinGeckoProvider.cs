@@ -53,6 +53,7 @@ public sealed class CoinGeckoProvider(HttpClient http, CallBudget budget, TimePr
     async Task<string> GetAsync(string path, CancellationToken ct)
     {
         budget.Take(Api);
+        log.LogInformation("CoinGecko {Endpoint}: {Calls} llamadas en el último minuto", path.Split('?')[0], budget.CallsInLastMinute);
         using var response = await http.GetAsync(path, ct);
 
         if (response.StatusCode == HttpStatusCode.TooManyRequests)
