@@ -5,7 +5,7 @@ API REST de FinDash (ASP.NET Core, .NET 10) que cumple `docs/contratos-api.md`.
 ```
 src/FinDash.Core     Modelos, interfaces, PortfolioCalculator y AlertRuleEngine (sin web ni MAUI)
 src/FinDash.Api      Controllers, EF Core, JWT, integraciones, PriceService y AlertWorker
-tests/FinDash.Tests  xUnit: lógica, lectura de CoinGecko/BCCR y endpoints
+tests/FinDash.Tests  xUnit: lógica, lectura de CoinGecko y endpoints
 ```
 
 ## Correrlo
@@ -33,17 +33,13 @@ dotnet run --project src/FinDash.Api
 cd src/FinDash.Api
 dotnet user-secrets set "Jwt:Key" "una-frase-larga-de-al-menos-32-caracteres"
 dotnet user-secrets set "CoinGecko:ApiKey" "CG-..."
-dotnet user-secrets set "Bccr:Email" "correo-registrado@ejemplo.com"
-dotnet user-secrets set "Bccr:Token" "TOKEN-DEL-BCCR"
 ```
 
-En App Service van como configuración: `Jwt__Key`, `CoinGecko__ApiKey`, `Bccr__Email` y `Bccr__Token`.
+En App Service van como configuración: `Jwt__Key` y `CoinGecko__ApiKey`.
 Fuera de Development la API no arranca sin `Jwt:Key`.
 
 `Providers:Mode` decide las fuentes:
-- `Real` (por defecto): CoinGecko para las cripto, con o sin llave. Tipo de cambio: el BCCR si
-  tiene correo y token, con CoinGecko de respaldo si el BCCR no responde; sin credenciales,
-  CoinGecko directo.
+- `Real` (por defecto): CoinGecko, con o sin llave, para las cripto y para el tipo de cambio.
 - `Fake`: siempre las falsas, para pruebas, CI y el plan B de la demo.
 
 ## Migraciones
@@ -60,7 +56,7 @@ El CI falla si alguien cambia el modelo y olvida la migración.
 ## Cómo funciona
 
 - **PriceService** pide todas las cripto del catálogo en UNA llamada a CoinGecko cada 5 min y
-  el tipo de cambio cada 6 h (BCCR, o CoinGecko si el BCCR no responde o no está configurado). Guarda cada ciclo en `PriceSnapshots` y en una caché en
+  el tipo de cambio cada hora (también de CoinGecko). Guarda cada ciclo en `PriceSnapshots` y en una caché en
   memoria compartida por todos los usuarios. `/api/market/snapshot` lee esa caché y nunca llama
   a CoinGecko (RNF-02).
 - **CallBudget** no deja pasar de 25 llamadas por minuto a CoinGecko. Ante un 429 espera lo que
@@ -79,13 +75,14 @@ El CI falla si alguien cambia el modelo y olvida la migración.
 
 ## Decisiones para revisar en equipo
 
-- **Tipo de cambio de respaldo:** CoinGecko no cotiza el dólar; se usa Tether en colones, que da un
-  solo valor (compra = venta) y no tiene historial: la gráfica del dólar muestra solo hoy y ayer
-  mientras se use el respaldo.
+- **Tipo de cambio desde CoinGecko, no desde el BCCR:** todas las consultas externas van a
+  CoinGecko. Como CoinGecko no cotiza el dólar, se usa Tether (USDT ≈ 1 USD) en colones,
+  corregido por su precio en dólares. Da un solo valor (compra = venta) y no es el tipo de cambio
+  oficial del BCCR. Hoy la gráfica del dólar muestra solo ayer y hoy.
 - **CoinGecko cada 5 min**, no cada 30–60 s (D2): además del límite por minuto, el plan Demo
   tiene un tope mensual de llamadas.
 - **Transacciones en USD:** si la app manda `fxRate` > 0, se guarda ese. Si manda 0, el servidor
-  pone el tipo de compra oficial de la fecha. Hoy `TransactionViewModel` manda el tipo de cambio
+  pone el tipo de cambio guardado de esa fecha. Hoy `TransactionViewModel` manda el tipo de cambio
   de HOY aunque la fecha sea pasada, así que conviene mandar 0 cuando la fecha no es hoy.
 - **Alertas creadas con la condición ya cumplida** avisan una vez en la siguiente evaluación.
   Editar el activo, la condición, el umbral o la moneda la deja como nueva. Editar no la enciende
@@ -93,7 +90,4 @@ El CI falla si alguien cambia el modelo y olvida la migración.
 
 ## Pendiente
 
-- Probar `BccrProvider` contra el servicio real cuando haya token. El formato que lee está
-  probado con una respuesta guardada. Desde el rediseño del sitio del BCCR (agosto 2026) el servicio
-  `wsindicadoreseconomicos.asmx` respondió 503 en las pruebas; hay que confirmar la dirección nueva.
 - Bloque 2: clientes HTTP en la app, token en SecureStorage, caché SQLite y notificaciones.

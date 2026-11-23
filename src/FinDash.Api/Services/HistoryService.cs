@@ -48,7 +48,6 @@ public sealed class HistoryService(
 
     async Task<IReadOnlyList<PricePointDto>> FxHistoryAsync(ChartRange range, CancellationToken ct)
     {
-        // El BCCR publica un valor por día; para "24h" se muestra la última semana.
         var today = DateOnly.FromDateTime(time.GetUtcNow().ToOffset(CrOffset).DateTime);
         var days = range switch { ChartRange.Day or ChartRange.Week => 7, ChartRange.Month => 30, _ => 365 };
         var rates = await fx.GetHistoryAsync(today.AddDays(-days), today, ct);

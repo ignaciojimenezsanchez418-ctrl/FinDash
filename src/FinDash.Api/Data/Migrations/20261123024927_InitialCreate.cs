@@ -205,7 +205,7 @@ namespace FinDash.Api.Data.Migrations
                     { "stellar", "Crypto", "Stellar", "CoinGecko", "XLM" },
                     { "tether", "Crypto", "Tether", "CoinGecko", "USDT" },
                     { "tron", "Crypto", "TRON", "CoinGecko", "TRX" },
-                    { "usd", "Fiat", "Dólar", "BCCR", "USD" },
+                    { "usd", "Fiat", "Dólar", "CoinGecko", "USD" },
                     { "usd-coin", "Crypto", "USD Coin", "CoinGecko", "USDC" }
                 });
 
