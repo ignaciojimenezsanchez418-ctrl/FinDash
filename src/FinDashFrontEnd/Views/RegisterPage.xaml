@@ -31,7 +31,7 @@
             <VerticalStackLayout Spacing="6" Padding="8,0">
                 <Label Text="Contraseña" Style="{StaticResource FieldLabel}" />
                 <Border Style="{StaticResource FieldBox}">
-                    <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Al menos 8 caracteres"
+                    <Entry Text="{Binding Password}" IsPassword="True" Placeholder="Contraseña"
                            ReturnType="Next" SemanticProperties.Description="Contraseña" />
                 </Border>
             </VerticalStackLayout>

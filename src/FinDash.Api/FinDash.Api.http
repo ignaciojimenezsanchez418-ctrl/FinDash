@@ -13,26 +13,26 @@ GET {{host}}/api/health
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
-{ "email": "demo@findash.cr", "password": "12345678" }
+{ "email": "demo@findash.cr", "password": "Demo-2026" }
 
 ### 3. El mismo correo otra vez → 409 "Ya hay una cuenta con ese correo."
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
-{ "email": "DEMO@findash.cr", "password": "12345678" }
+{ "email": "DEMO@findash.cr", "password": "Demo-2026" }
 
-### 4. Contraseña corta → 400
+### 4. Contraseña débil (sin mayúscula ni símbolo) → 400
 POST {{host}}/api/auth/register
 Content-Type: application/json
 
-{ "email": "otro@findash.cr", "password": "123" }
+{ "email": "otro@findash.cr", "password": "12345678" }
 
 ### 5. Iniciar sesión → 200 con token (MANDAR ANTES DE LAS DEMÁS)
 # @name login
 POST {{host}}/api/auth/login
 Content-Type: application/json
 
-{ "email": "demo@findash.cr", "password": "12345678" }
+{ "email": "demo@findash.cr", "password": "Demo-2026" }
 
 ### 6. Contraseña incorrecta → 401 "Correo o contraseña incorrectos."
 POST {{host}}/api/auth/login

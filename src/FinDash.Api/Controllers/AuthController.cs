@@ -20,7 +20,14 @@ public sealed class AuthController(
     JwtTokenService tokens,
     TimeProvider time) : ApiControllerBase
 {
-    public const int MinPasswordLength = 8;
+    public const string WeakPassword =
+        "La contraseña necesita al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.";
+
+    /// <summary>Mínimo 8 caracteres con mayúscula, minúscula, número y carácter especial (cualquiera que no sea letra, número ni espacio).</summary>
+    internal static bool IsStrongPassword(string? p) =>
+        p is { Length: >= 8 }
+        && p.Any(char.IsUpper) && p.Any(char.IsLower) && p.Any(char.IsDigit)
+        && p.Any(c => !char.IsLetterOrDigit(c) && !char.IsWhiteSpace(c));
 
     /// <summary>Crea una cuenta y devuelve el token. 201 · 409 si el correo ya existe · 400.</summary>
     [HttpPost("register")]
@@ -29,8 +36,7 @@ public sealed class AuthController(
     {
         var email = Normalize(body.Email);
         if (!IsValidEmail(email)) return Error("El correo no parece válido.", 400);
-        if ((body.Password ?? "").Length < MinPasswordLength)
-            return Error($"La contraseña necesita al menos {MinPasswordLength} caracteres.", 400);
+        if (!IsStrongPassword(body.Password)) return Error(WeakPassword, 400);
         if (await db.Users.AnyAsync(u => u.Email == email, ct))
             return Error("Ya hay una cuenta con ese correo.", 409);
 
