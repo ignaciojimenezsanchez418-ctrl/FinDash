@@ -65,7 +65,7 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         var client = factory.CreateClient();
         var response = await client.PostAsJsonAsync("/api/auth/register",
-            new Credentials($"u{Guid.NewGuid():N}@correo.com", "clave-segura-1"));
+            new Credentials($"u{Guid.NewGuid():N}@correo.com", "Clave-segura-1"));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var auth = await response.Content.ReadFromJsonAsync<AuthResponse>(Json);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
@@ -107,10 +107,14 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         var weak = await client.PostAsJsonAsync("/api/auth/register", new Credentials(email, "corta"));
         Assert.Equal(HttpStatusCode.BadRequest, weak.StatusCode);
 
-        var created = await client.PostAsJsonAsync("/api/auth/register", new Credentials(email, "clave-segura-1"));
+        var noSymbol = await client.PostAsJsonAsync("/api/auth/register", new Credentials(email, "ClaveSegura1"));
+        Assert.Equal(HttpStatusCode.BadRequest, noSymbol.StatusCode);
+        Assert.Equal(AuthController.WeakPassword, await DetailAsync(noSymbol));
+
+        var created = await client.PostAsJsonAsync("/api/auth/register", new Credentials(email, "Clave-segura-1"));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
 
-        var duplicate = await client.PostAsJsonAsync("/api/auth/register", new Credentials(email.ToUpperInvariant(), "clave-segura-1"));
+        var duplicate = await client.PostAsJsonAsync("/api/auth/register", new Credentials(email.ToUpperInvariant(), "Clave-segura-1"));
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         Assert.Equal("Ya hay una cuenta con ese correo.", await DetailAsync(duplicate));
 
@@ -118,7 +122,7 @@ public class ApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
         Assert.Equal("Correo o contraseña incorrectos.", await DetailAsync(wrong));
 
-        var ok = await client.PostAsJsonAsync("/api/auth/login", new Credentials($"  {email} ", "clave-segura-1"));
+        var ok = await client.PostAsJsonAsync("/api/auth/login", new Credentials($"  {email} ", "Clave-segura-1"));
         Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
         var auth = await ok.Content.ReadFromJsonAsync<AuthResponse>(Json);
         Assert.Equal(email, auth!.Email);

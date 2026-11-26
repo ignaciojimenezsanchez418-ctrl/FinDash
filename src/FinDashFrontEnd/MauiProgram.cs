@@ -1,4 +1,5 @@
 ﻿using FinDashFrontEnd.Services;
+using FinDashFrontEnd.Services.Api;
 using FinDashFrontEnd.Services.Mock;
 using FinDashFrontEnd.ViewModels;
 using FinDashFrontEnd.Views;
@@ -11,6 +12,14 @@ namespace FinDashFrontEnd;
 
 public static class MauiProgram
 {
+    // API local (docs/backend.md). El emulador de Android ve la PC en 10.0.2.2.
+    // shortcut: dirección fija de desarrollo, cambiarla por la de la nube al publicar (US-604).
+#if ANDROID
+    const string ApiBaseUrl = "http://10.0.2.2:5182/";
+#else
+    const string ApiBaseUrl = "http://localhost:5182/";
+#endif
+
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -31,11 +40,12 @@ public static class MauiProgram
 
         RemoveNativeInputChrome();
 
-        // Servicios. Hoy son Mock*; al conectar la API se cambian estas líneas por los clientes HTTP.
+        // Servicios. Auth ya usa la API; los demás siguen siendo Mock* hasta conectarlos (US-108).
         var services = builder.Services;
+        services.AddSingleton(new HttpClient { BaseAddress = new Uri(ApiBaseUrl), Timeout = TimeSpan.FromSeconds(15) });
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<MockBackend>();
-        services.AddSingleton<IAuthService, MockAuthService>();
+        services.AddSingleton<IAuthService, ApiAuthService>();
         services.AddSingleton<IMarketService, MockMarketService>();
         services.AddSingleton<IPortfolioService, MockPortfolioService>();
         services.AddSingleton<IAlertService, MockAlertService>();

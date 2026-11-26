@@ -53,6 +53,11 @@ internal static class Validation
         return at > 0 && e.LastIndexOf('.') > at + 1 && !e.EndsWith('.') ? null : "El correo no parece válido.";
     }
 
+    // Misma regla que la API (AuthController.IsStrongPassword); la API es la que manda.
     public static string? NewPassword(string password) =>
-        password.Length >= 8 ? null : "La contraseña necesita al menos 8 caracteres.";
+        password.Length >= 8
+        && password.Any(char.IsUpper) && password.Any(char.IsLower) && password.Any(char.IsDigit)
+        && password.Any(c => !char.IsLetterOrDigit(c) && !char.IsWhiteSpace(c))
+            ? null
+            : "La contraseña necesita al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.";
 }

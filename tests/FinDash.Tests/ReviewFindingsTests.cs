@@ -37,7 +37,7 @@ public class ReviewFindingsTests
         // Servidor recién arrancado sin tipo de cambio todavía: hay precios cripto pero no colones.
         await using var factory = new ApiFactory();
         var client = factory.CreateClient();
-        var register = await client.PostAsJsonAsync("/api/auth/register", new Credentials("usd@correo.com", "clave-segura-1"));
+        var register = await client.PostAsJsonAsync("/api/auth/register", new Credentials("usd@correo.com", "Clave-segura-1"));
         var auth = await register.Content.ReadFromJsonAsync<AuthResponse>(Json);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth!.Token);
 
